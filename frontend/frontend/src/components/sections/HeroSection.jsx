@@ -72,7 +72,7 @@ export const HeroSection = () => {
             className="flex flex-col"
           >
             <button 
-              onClick={() => navigate('/register?role=farmer')}
+              onClick={() => navigate('/auth/login')}
               className="bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition"
             >
               {t('hero.farmerBtn')}
@@ -86,7 +86,7 @@ export const HeroSection = () => {
             className="flex flex-col"
           >
             <button 
-              onClick={() => navigate('/register?role=buyer')}
+              onClick={() => navigate('/auth/login')}
               className="border border-green-600 text-green-700 px-6 py-3 rounded-xl hover:bg-green-50 transition"
             >
               {t('hero.buyerBtn')}

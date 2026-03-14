@@ -33,7 +33,7 @@ export const FarmerProfile = () => {
 
   const handleLogout = () => {
     dispatch(logout());
-    navigate('/login');
+    navigate('/auth/login');
   };
 
   const displayName = user?.name || user?.fullName || '?';

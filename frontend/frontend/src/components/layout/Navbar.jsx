@@ -56,13 +56,13 @@ export const Navbar = () => {
         <div className="hidden md:flex items-center gap-4">
           <LanguageSwitcher />
           <button 
-            onClick={() => navigate('/login')}
+            onClick={() => navigate('/auth/login')}
             className="border-[1.5px] border-farm-green text-farm-green rounded-lg px-5 py-2 font-body font-medium hover:bg-farm-green hover:text-white transition-colors"
           >
             {t('nav.login')}
           </button>
           <button 
-            onClick={() => navigate('/register')}
+            onClick={() => navigate('/auth/login')}
             style={{ clipPath: 'polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%)' }}
             className="bg-farm-green text-white px-6 py-2 font-body font-semibold hover:bg-farm-gold hover:text-farm-dark transition-colors"
           >
@@ -97,13 +97,13 @@ export const Navbar = () => {
             </a>
             <div className="flex flex-col gap-3 mt-4">
               <button 
-                onClick={() => { setMobileMenuOpen(false); navigate('/login'); }}
+                onClick={() => { setMobileMenuOpen(false); navigate('/auth/login'); }}
                 className="w-full border-[1.5px] border-farm-green text-farm-green rounded-lg px-5 py-3 font-body font-medium hover:bg-farm-green hover:text-white transition-colors"
               >
                 {t('nav.login')}
               </button>
               <button 
-                onClick={() => { setMobileMenuOpen(false); navigate('/register'); }}
+                onClick={() => { setMobileMenuOpen(false); navigate('/auth/login'); }}
                 className="w-full bg-farm-green text-white rounded-lg px-6 py-3 font-body font-semibold hover:bg-farm-gold hover:text-farm-dark transition-colors"
               >
                 {t('nav.getStarted')}

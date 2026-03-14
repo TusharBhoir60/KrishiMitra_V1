@@ -290,7 +290,7 @@ export const ScrollFarmScene = () => {
                 <motion.div 
                   whileHover={{ scale: 1.06, y: -8 }}
                   className="bg-farm-gold rounded-3xl p-8 w-64 text-center cursor-pointer shadow-xl flex flex-col"
-                  onClick={() => window.location.href = '/register?role=farmer'}
+                  onClick={() => window.location.href = '/auth/login'}
                 >
                   <div className="text-5xl mb-4">🌾</div>
                   <h3 className="font-display text-2xl text-farm-dark font-bold mb-2">Join as Farmer</h3>
@@ -302,7 +302,7 @@ export const ScrollFarmScene = () => {
                 <motion.div 
                   whileHover={{ scale: 1.06, y: -8 }}
                   className="border-2 border-white/30 bg-white/5 backdrop-blur-md rounded-3xl p-8 w-64 text-center cursor-pointer shadow-xl flex flex-col"
-                  onClick={() => window.location.href = '/register?role=buyer'}
+                  onClick={() => window.location.href = '/auth/login'}
                 >
                   <div className="text-5xl mb-4">🛒</div>
                   <h3 className="font-display text-2xl text-white font-bold mb-2">Join as Buyer</h3>

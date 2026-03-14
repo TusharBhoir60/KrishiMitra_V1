@@ -50,7 +50,7 @@ export const CTASection = () => {
             whileHover={{ y: -12, scale: 1.03, boxShadow: '0 30px 60px rgba(245,158,11,0.4)' }}
             transition={{ type: 'spring', stiffness: 300, damping: 20 }}
             className="w-full sm:w-72 bg-farm-gold rounded-3xl p-10 text-center flex flex-col cursor-pointer"
-            onClick={() => navigate('/register?role=farmer')}
+            onClick={() => navigate('/auth/login')}
           >
             <motion.div 
               animate={{ rotate: [-10, 10, -10] }}
@@ -71,7 +71,7 @@ export const CTASection = () => {
             whileHover={{ y: -12, scale: 1.03, boxShadow: '0 30px 60px rgba(0,0,0,0.3)' }}
             transition={{ type: 'spring', stiffness: 300, damping: 20 }}
             className="w-full sm:w-72 border-2 border-white/30 bg-white/10 backdrop-blur-sm rounded-3xl p-10 text-center flex flex-col cursor-pointer"
-            onClick={() => navigate('/register?role=buyer')}
+            onClick={() => navigate('/auth/login')}
           >
             <motion.div 
               animate={{ rotate: [10, -10, 10] }}

@@ -21,7 +21,7 @@ export const FarmerLayout = () => {
 
   const handleLogout = () => {
     dispatch(logout());
-    navigate('/login');
+    navigate('/auth/login');
   };
 
   return (

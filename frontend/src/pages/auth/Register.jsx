@@ -8,6 +8,7 @@ import { authApi } from '../../api/endpoints/authApi';
 import { setCredentials } from '../../store/slices/authSlice';
 import { toast } from 'react-hot-toast';
 import { districtList } from '../../utils/districtList';
+import { useLanguage } from '../../context/LanguageContext';
 
 const schema = yup.object().shape({
   fullName: yup.string().required('Full name is required'),
@@ -31,13 +32,14 @@ const schema = yup.object().shape({
 });
 
 export const Register = () => {
+  const { t } = useLanguage();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const initialRole = queryParams.get('role') || '';
-  
-  const [step, setStep] = useState(initialRole && (initialRole==='farmer' || initialRole==='buyer') ? 2 : 1);
-  const [role, setRole] = useState(initialRole && (initialRole==='farmer' || initialRole==='buyer') ? initialRole : '');
-  
+
+  const [step, setStep] = useState(initialRole && (initialRole === 'farmer' || initialRole === 'buyer') ? 2 : 1);
+  const [role, setRole] = useState(initialRole && (initialRole === 'farmer' || initialRole === 'buyer') ? initialRole : '');
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -50,12 +52,13 @@ export const Register = () => {
     try {
       const res = await authApi.register({ ...data, role });
       if (res.data && res.data.user) {
-         dispatch(setCredentials({ user: res.data.user, token: res.data.token }));
-         toast.success(`Account created! Logged in as ${role}`);
-         navigate(`/${res.data.user.role}/dashboard`);
+        dispatch(setCredentials({ user: res.data.user, token: res.data.token }));
+        toast.success(`Account created! Logged in as ${role}`);
+        navigate(`/${res.data.user.role}/dashboard`);
       }
     } catch (err) {
-      toast.error('UI Demo mode: Simulated backend failed.');
+      const message = err.response?.data?.message || err.message || 'Registration failed. Please try again.';
+      toast.error(message);
     }
   };
 
@@ -80,11 +83,11 @@ export const Register = () => {
 
         {step === 1 && (
           <div>
-            <h2 className="font-display text-3xl text-farm-dark mb-2 text-center">Join KrishiMitra</h2>
-            <p className="font-body text-gray-500 text-center mb-8">Select how you want to use the platform</p>
-            
+            <h2 className="font-display text-3xl text-farm-dark mb-2 text-center">{t('auth.joinKrishiMitra')}</h2>
+            <p className="font-body text-gray-500 text-center mb-8">{t('auth.selectRole')}</p>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-              <div 
+              <div
                 onClick={() => handleRoleSelect('farmer')}
                 className={`p-6 rounded-xl border-2 cursor-pointer transition-all ${role === 'farmer' ? 'border-farm-green bg-farm-pale ring-4 ring-farm-green/20' : 'border-gray-200 hover:border-farm-green/50'}`}
               >
@@ -92,8 +95,8 @@ export const Register = () => {
                 <h3 className="font-display text-xl font-bold mb-2">I am a Farmer</h3>
                 <p className="font-body text-sm text-gray-600">List crops, receive orders, and get paid directly without middlemen.</p>
               </div>
-              
-              <div 
+
+              <div
                 onClick={() => handleRoleSelect('buyer')}
                 className={`p-6 rounded-xl border-2 cursor-pointer transition-all ${role === 'buyer' ? 'border-farm-green bg-farm-pale ring-4 ring-farm-green/20' : 'border-gray-200 hover:border-farm-green/50'}`}
               >
@@ -103,31 +106,31 @@ export const Register = () => {
               </div>
             </div>
 
-            <button 
+            <button
               onClick={() => setStep(2)}
               disabled={!role}
               className="w-full bg-farm-green text-white rounded-lg py-3 font-body font-semibold hover:bg-farm-mid disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              Continue
+              {t('auth.continue')}
             </button>
             <div className="mt-4 text-center font-body text-gray-600">
-              Already have an account? <Link to="/login" className="text-farm-green font-semibold hover:underline">Login here</Link>
+              {t('auth.alreadyAccount')} <Link to="/login" className="text-farm-green font-semibold hover:underline">{t('auth.loginHere')}</Link>
             </div>
           </div>
         )}
 
         {step === 2 && (
           <div>
-            <h2 className="font-display text-3xl text-farm-dark mb-6 text-center">Complete your profile</h2>
+            <h2 className="font-display text-3xl text-farm-dark mb-6 text-center">{t('auth.completeProfile')}</h2>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-display text-gray-700 mb-1">Full Name</label>
+                  <label className="block font-display text-gray-700 mb-1">{t('auth.fullName')}</label>
                   <input {...register('fullName')} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 font-body focus:ring-2 focus:ring-farm-gold outline-none" />
                   <p className="text-red-500 text-xs mt-1 font-body">{errors.fullName?.message}</p>
                 </div>
                 <div>
-                  <label className="block font-display text-gray-700 mb-1">Email</label>
+                  <label className="block font-display text-gray-700 mb-1">{t('auth.email')}</label>
                   <input type="email" {...register('email')} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 font-body focus:ring-2 focus:ring-farm-gold outline-none" />
                   <p className="text-red-500 text-xs mt-1 font-body">{errors.email?.message}</p>
                 </div>
@@ -135,12 +138,12 @@ export const Register = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-display text-gray-700 mb-1">Phone Number</label>
+                  <label className="block font-display text-gray-700 mb-1">{t('auth.phone')}</label>
                   <input type="tel" maxLength={10} {...register('phone')} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 font-body focus:ring-2 focus:ring-farm-gold outline-none" />
                   <p className="text-red-500 text-xs mt-1 font-body">{errors.phone?.message}</p>
                 </div>
                 <div>
-                  <label className="block font-display text-gray-700 mb-1">District</label>
+                  <label className="block font-display text-gray-700 mb-1">{t('auth.district')}</label>
                   <select {...register('district')} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 font-body focus:ring-2 focus:ring-farm-gold outline-none bg-white">
                     <option value="">Select District</option>
                     {districtList.map(d => <option key={d} value={d}>{d}</option>)}
@@ -151,12 +154,12 @@ export const Register = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-display text-gray-700 mb-1">Password</label>
+                  <label className="block font-display text-gray-700 mb-1">{t('auth.password')}</label>
                   <input type="password" {...register('password')} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 font-body focus:ring-2 focus:ring-farm-gold outline-none" />
                   <p className="text-red-500 text-xs mt-1 font-body">{errors.password?.message}</p>
                 </div>
                 <div>
-                  <label className="block font-display text-gray-700 mb-1">Confirm Password</label>
+                  <label className="block font-display text-gray-700 mb-1">{t('auth.confirmPassword')}</label>
                   <input type="password" {...register('confirmPassword')} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 font-body focus:ring-2 focus:ring-farm-gold outline-none" />
                   <p className="text-red-500 text-xs mt-1 font-body">{errors.confirmPassword?.message}</p>
                 </div>
@@ -193,10 +196,10 @@ export const Register = () => {
 
               <div className="flex gap-4 mt-6">
                 <button type="button" onClick={() => setStep(1)} className="px-6 py-3 font-body font-semibold text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                  Back
+                  {t('auth.back')}
                 </button>
                 <button type="submit" className="flex-1 bg-farm-green text-white rounded-lg py-3 font-body font-semibold hover:bg-farm-mid transition-colors">
-                  Create Account
+                  {t('auth.createAccountBtn')}
                 </button>
               </div>
             </form>

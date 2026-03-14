@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Navbar } from '../components/layout/Navbar';
 import { HeroSection } from '../components/sections/HeroSection';
 import { StatsRow } from '../components/sections/StatsRow';
@@ -9,9 +10,30 @@ import { MarketplacePreview } from '../components/sections/MarketplacePreview';
 import { TestimonialsSection } from '../components/sections/TestimonialsSection';
 import { CTASection } from '../components/sections/CTASection';
 import { Footer } from '../components/layout/Footer';
+import { getRoleHomePath } from '../utils/authRedirect';
 
 export const LandingPage = () => {
   const [scrollProgress, setScrollProgress] = useState(0);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    const storedRole = localStorage.getItem('role');
+
+    if (!storedUser && !storedRole) return;
+
+    try {
+      const parsedUser = storedUser ? JSON.parse(storedUser) : null;
+      const role = parsedUser?.role || storedRole;
+      if (role) {
+        navigate(getRoleHomePath(role), { replace: true });
+      }
+    } catch {
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+      localStorage.removeItem('role');
+    }
+  }, [navigate]);
 
   useEffect(() => {
     const handleScroll = () => {

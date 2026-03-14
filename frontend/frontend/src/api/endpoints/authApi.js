@@ -3,15 +3,31 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 export const authApi = {
   register: async (data) => {
     await delay(800);
-    return { data: { token: 'mock-jwt-token', user: { _id: '123', name: data.name || 'Demo User', phone: data.phone || '9999999999', role: data.role || 'farmer', isVerified: true, location: { state: 'Maharashtra', district: 'Pune' } } } };
+    const role = data.role || 'farmer';
+    return {
+      data: {
+        token: 'mock-jwt-token',
+        user: {
+          _id: '123',
+          name: data.name || data.fullName || 'Demo User',
+          email: data.email || '',
+          phone: data.phone || '9999999999',
+          role,
+          isVerified: true,
+          location: { state: 'Maharashtra', district: 'Pune' }
+        }
+      }
+    };
   },
   login: async (data) => {
     await delay(800);
-    let role = 'farmer';
-    const email = data.email?.toLowerCase() || '';
-    if (email.includes('admin')) role = 'admin';
-    else if (email.includes('buyer')) role = 'buyer';
-    else if (email.includes('transporter') || email.includes('driver')) role = 'transporter';
+    const identifier = (data.identifier || data.email || '').toLowerCase();
+    let role = data.role || 'farmer';
+    if (!data.role) {
+      if (identifier.includes('admin')) role = 'admin';
+      else if (identifier.includes('buyer')) role = 'buyer';
+      else if (identifier.includes('transporter') || identifier.includes('driver')) role = 'transporter';
+    }
     
     return { 
       data: { 
@@ -19,7 +35,7 @@ export const authApi = {
         user: { 
           _id: 'user123', 
           name: role.charAt(0).toUpperCase() + role.slice(1) + ' Demo', 
-          email: email, 
+          email: identifier, 
           phone: '9999999999', 
           role: role, 
           isVerified: true, 

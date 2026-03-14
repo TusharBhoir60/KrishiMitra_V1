@@ -4,7 +4,6 @@ import { Toaster } from 'react-hot-toast';
 // Layouts & Common
 import { LandingPage } from './pages/LandingPage';
 import { Login } from './pages/auth/Login';
-import { Register } from './pages/auth/Register';
 import { AppLayout } from './components/layout/AppLayout';
 import { BuyerLayout } from './components/layout/BuyerLayout';
 import { FarmerLayout } from './components/layout/FarmerLayout';
@@ -48,8 +47,10 @@ function App() {
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          <Route path="/auth/login" element={<Login />} />
+          <Route path="/login" element={<Navigate to="/auth/login" replace />} />
+          <Route path="/register" element={<Navigate to="/auth/login" replace />} />
+          <Route path="/auth/register" element={<Navigate to="/auth/login" replace />} />
           
           {/* ── Farmer Routes (dedicated sidebar layout) ── */}
           <Route element={<ProtectedRoute><FarmerLayout /></ProtectedRoute>}>
