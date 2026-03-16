@@ -39,3 +39,65 @@ Potato,Bihar,Patna,2500,2,Rabi,14.5,16.90
 Onion,Rajasthan,Alwar,700,3,Rabi,17.0,20.50
 Rice,Tamil Nadu,Thanjavur,3500,9,Kharif,33.0,37.50
 Wheat,Haryana,Karnal,4500,4,Rabi,19.5,22.00
+//new data entries
+Tomato,Andhra Pradesh,Chittoor,850,8,Kharif,23.0,27.50
+Tomato,Himachal Pradesh,Solan,600,9,Kharif,25.5,30.00
+Potato,West Bengal,Hooghly,3000,1,Rabi,13.5,15.80
+Potato,Madhya Pradesh,Gwalior,1800,3,Rabi,15.0,17.20
+Onion,Gujarat,Bhavnagar,900,4,Summer,19.5,23.50
+Onion,Madhya Pradesh,Mandsaur,750,5,Summer,21.0,25.00
+Rice,Odisha,Cuttack,2800,10,Kharif,31.0,35.20
+Rice,Chhattisgarh,Raipur,3200,11,Kharif,29.5,33.50
+Wheat,Rajasthan,Jaipur,4000,4,Rabi,18.0,20.50
+Wheat,Uttar Pradesh,Kanpur,3000,3,Rabi,19.0,21.00
+Maize,Bihar,Bhagalpur,900,9,Kharif,13.0,14.80
+Maize,Andhra Pradesh,Warangal,1100,8,Kharif,14.5,16.50
+Sugarcane,Tamil Nadu,Erode,9000,2,Whole Year,3.1,3.70
+Sugarcane,Karnataka,Mandya,7500,1,Whole Year,2.9,3.50
+Cotton,Telangana,Warangal,1600,11,Kharif,56.0,62.50
+Cotton,Rajasthan,Ganganagar,1400,10,Kharif,54.0,59.80
+Soybean,Rajasthan,Kota,1000,10,Kharif,42.5,47.00
+Soybean,Karnataka,Dharwad,800,9,Kharif,40.0,44.80
+Groundnut,Tamil Nadu,Villupuram,1100,11,Kharif,51.0,56.50
+Groundnut,Rajasthan,Bikaner,1300,10,Kharif,49.0,54.00
+Banana,Gujarat,Anand,2800,7,Whole Year,27.5,31.50
+Banana,Andhra Pradesh,Krishna,2200,6,Whole Year,25.0,29.00
+Mango,Uttar Pradesh,Lucknow,700,5,Summer,65.0,76.00
+Mango,Karnataka,Kolar,900,4,Summer,68.0,79.50
+Grapes,Maharashtra,Solapur,550,3,Rabi,80.0,93.00
+Grapes,Andhra Pradesh,Anantapur,480,2,Rabi,76.0,89.00
+Apple,Uttarakhand,Uttarkashi,300,9,Rabi,105.0,122.00
+Apple,Himachal Pradesh,Kullu,380,8,Rabi,112.0,130.00
+Cabbage,Tamil Nadu,Nilgiris,650,1,Winter,9.5,11.80
+Cauliflower,West Bengal,Nadia,700,12,Winter,17.5,20.50
+Brinjal,Odisha,Khordha,450,7,Kharif,12.0,14.20
+Okra,Maharashtra,Jalgaon,400,6,Kharif,26.0,30.00
+Peas,Himachal Pradesh,Shimla,600,1,Rabi,38.5,44.00
+Carrot,Uttarakhand,Dehradun,450,10,Rabi,21.0,25.50
+Mustard,Rajasthan,Bharatpur,2000,3,Rabi,48.0,54.00
+Mustard,Haryana,Hisar,1800,2,Rabi,46.5,52.50
+Turmeric,Andhra Pradesh,Nizamabad,700,1,Whole Year,90.0,105.00
+Turmeric,Tamil Nadu,Erode,600,2,Whole Year,88.0,102.00
+Garlic,Madhya Pradesh,Mandsaur,500,4,Rabi,62.0,72.50
+Garlic,Rajasthan,Kota,450,3,Rabi,58.0,68.00
+Chilli,Andhra Pradesh,Guntur,800,12,Rabi,72.0,84.00
+Chilli,Telangana,Khammam,700,11,Rabi,68.0,79.50
+Lentils,Madhya Pradesh,Vidisha,1000,4,Rabi,78.0,89.00
+Lentils,Uttar Pradesh,Jhansi,900,3,Rabi,75.0,86.50
+Chickpea,Rajasthan,Nagaur,1500,4,Rabi,54.0,61.00
+Chickpea,Madhya Pradesh,Sehore,1200,3,Rabi,52.0,59.50
+Papaya,Maharashtra,Aurangabad,1800,6,Whole Year,20.0,24.00
+Papaya,Gujarat,Vadodara,1600,7,Whole Year,19.0,22.50
+Pomegranate,Maharashtra,Solapur,500,10,Whole Year,95.0,112.00
+Pomegranate,Karnataka,Bidar,420,9,Whole Year,90.0,106.00
+Spinach,Punjab,Ludhiana,300,12,Winter,15.0,18.50
+Spinach,Haryana,Sonipat,350,1,Winter,14.0,17.00
+Methi,Gujarat,Mehsana,280,11,Rabi,22.0,26.50
+Bitter Gourd,Kerala,Thrissur,320,6,Kharif,35.0,41.00
+Bitter Gourd,Tamil Nadu,Madurai,280,7,Kharif,33.0,38.50
+Cucumber,Karnataka,Tumkur,400,5,Summer,18.0,21.50
+Cucumber,Andhra Pradesh,Visakhapatnam,350,6,Summer,17.0,20.00
+Watermelon,Rajasthan,Jaipur,2500,5,Summer,10.0,12.00
+Watermelon,Maharashtra,Nashik,2000,4,Summer,11.0,13.50
+Coconut,Kerala,Thrissur,5000,6,Whole Year,22.0,26.00
+Coconut,Tamil Nadu,Coimbatore,4500,7,Whole Year,21.0,25.00

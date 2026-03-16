@@ -263,7 +263,7 @@ def train(data_dir: str = None, epochs: int = 20, fine_tune_epochs: int = 10):
     # Callbacks
     callbacks = [
         tf.keras.callbacks.EarlyStopping(
-            monitor="val_grade_accuracy", patience=5, restore_best_weights=True, verbose=1
+            monitor="val_grade_accuracy",mode="max", patience=5, restore_best_weights=True, verbose=1
         ),
         tf.keras.callbacks.ReduceLROnPlateau(
             monitor="val_loss", factor=0.5, patience=3, verbose=1

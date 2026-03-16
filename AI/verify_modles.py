@@ -1,6 +1,6 @@
 """
-verify_models.py — AgriConnect Phase 1 & 2 Verification Script
-===============================================================
+verify_models.py — AgriConnect Phase 1, 2 & 3 Verification Script
+==================================================================
 Run this from the project root BEFORE starting the server.
 It checks models, runs predictions directly, then tests live API endpoints.
 
@@ -48,6 +48,10 @@ def check_model_files():
         "Phase 2 model":        "demand_model.joblib",
         "Phase 2 preprocessor": "demand_preprocessor.joblib",
         "Phase 2 metrics":      "demand_metrics.json",
+        # ── Phase 3 CV model files ──────────────────────────────────────────
+        "Phase 3 CV model":     "Quality_model.h5",
+        "Phase 3 CV labels":    "Quality_labels.json",
+        "Phase 3 CV metrics":   "Quality_metrics.json",
     }
 
     all_found = True
@@ -64,6 +68,7 @@ def check_model_files():
         print(f"\n  {R}Some models are missing. Run:{W}")
         print(f"    python training/train_price.py")
         print(f"    python training/train_demand.py")
+        print(f"    python training/train_cv.py")
         sys.exit(1)
 
     return True
@@ -85,12 +90,27 @@ def check_metrics():
             "r2":                       (0.60, "R²"),
             "classification_accuracy_pct": (70.0, "Class accuracy %"),
         },
+        # ── Phase 3 CV metrics ───────────────────────────────────────────────
+        # Expects cv_metrics.json to contain: val_accuracy, val_loss, top5_accuracy
+        "cv_metrics.json": {
+            "val_accuracy":   (0.80, "Val Accuracy"),
+            "val_loss":       (1.00, "Val Loss",       "lower"),
+            "top5_accuracy":  (0.95, "Top-5 Accuracy"),
+        },
     }
 
     for filename, checks in THRESHOLDS.items():
         path = models_dir / filename
+        if not path.exists():
+            warn(f"{filename} not found, skipping metrics check")
+            continue
         data = json.loads(path.read_text())
-        phase = "Phase 1" if "price" in filename else "Phase 2"
+        if "price" in filename:
+            phase = "Phase 1"
+        elif "demand" in filename:
+            phase = "Phase 2"
+        else:
+            phase = "Phase 3 (CV)"
         print(f"\n  {phase} ({filename}):")
 
         for key, info in checks.items():
@@ -119,7 +139,9 @@ def check_direct_inference():
     import joblib
     import numpy as np
 
-    # Phase 1
+    all_ok = True
+
+    # ── Phase 1 ──────────────────────────────────────────────────────────────
     print("  Phase 1 — Price Prediction:")
     test_cases = [
         {"cropName": "Tomato",  "state": "Maharashtra", "district": "Pune",      "quantity": 500,  "month": 6,  "season": "Kharif",     "historicalAvgPrice": 22.5},
@@ -132,7 +154,6 @@ def check_direct_inference():
     model = joblib.load("models/saved/price_model.joblib")
     prep  = joblib.load("models/saved/price_preprocessor.joblib")
 
-    all_ok = True
     for tc in test_cases:
         try:
             X    = prep.transform(tc)
@@ -150,13 +171,13 @@ def check_direct_inference():
             fail(f"  {tc['cropName']} failed: {e}")
             all_ok = False
 
-    # Phase 2
+    # ── Phase 2 ──────────────────────────────────────────────────────────────
     print("\n  Phase 2 — Demand Forecasting:")
     demand_cases = [
-        {"cropName": "Tomato", "state": "Maharashtra", "month": 6,  "season": "Kharif",     "demand_lag1": 0.72, "demand_lag2": 0.68, "price_lag1": 24.5, "price_lag2": 23.0, "demand_rolling_mean": 0.70, "price_rolling_mean": 23.75, "price_demand_ratio": 24.5/0.72},
-        {"cropName": "Potato", "state": "Punjab",       "month": 3,  "season": "Rabi",       "demand_lag1": 0.60, "demand_lag2": 0.55, "price_lag1": 18.0, "price_lag2": 17.5, "demand_rolling_mean": 0.58, "price_rolling_mean": 17.75, "price_demand_ratio": 18.0/0.60},
-        {"cropName": "Wheat",  "state": "Haryana",      "month": 4,  "season": "Rabi",       "demand_lag1": 0.80, "demand_lag2": 0.78, "price_lag1": 22.0, "price_lag2": 21.5, "demand_rolling_mean": 0.79, "price_rolling_mean": 21.75, "price_demand_ratio": 22.0/0.80},
-        {"cropName": "Onion",  "state": "Maharashtra",  "month": 4,  "season": "Summer",     "demand_lag1": 0.50, "demand_lag2": 0.45, "price_lag1": 20.0, "price_lag2": 19.0, "demand_rolling_mean": 0.48, "price_rolling_mean": 19.5,  "price_demand_ratio": 20.0/0.50},
+        {"cropName": "Tomato", "state": "Maharashtra", "month": 6,  "season": "Kharif",  "demand_lag1": 0.72, "demand_lag2": 0.68, "price_lag1": 24.5, "price_lag2": 23.0, "demand_rolling_mean": 0.70, "price_rolling_mean": 23.75, "price_demand_ratio": 24.5/0.72},
+        {"cropName": "Potato", "state": "Punjab",       "month": 3,  "season": "Rabi",   "demand_lag1": 0.60, "demand_lag2": 0.55, "price_lag1": 18.0, "price_lag2": 17.5, "demand_rolling_mean": 0.58, "price_rolling_mean": 17.75, "price_demand_ratio": 18.0/0.60},
+        {"cropName": "Wheat",  "state": "Haryana",      "month": 4,  "season": "Rabi",   "demand_lag1": 0.80, "demand_lag2": 0.78, "price_lag1": 22.0, "price_lag2": 21.5, "demand_rolling_mean": 0.79, "price_rolling_mean": 21.75, "price_demand_ratio": 22.0/0.80},
+        {"cropName": "Onion",  "state": "Maharashtra",  "month": 4,  "season": "Summer", "demand_lag1": 0.50, "demand_lag2": 0.45, "price_lag1": 20.0, "price_lag2": 19.0, "demand_rolling_mean": 0.48, "price_rolling_mean": 19.5,  "price_demand_ratio": 20.0/0.50},
     ]
 
     dmodel = joblib.load("models/saved/demand_model.joblib")
@@ -164,7 +185,7 @@ def check_direct_inference():
 
     for dc in demand_cases:
         try:
-            import pandas as pd, numpy as np
+            import pandas as pd
             df = pd.DataFrame([dc])
             df["month_sin"] = np.sin(2 * np.pi * df["month"] / 12)
             df["month_cos"] = np.cos(2 * np.pi * df["month"] / 12)
@@ -180,7 +201,93 @@ def check_direct_inference():
             fail(f"  {dc['cropName']} failed: {e}")
             all_ok = False
 
+    # ── Phase 3 — CV (CNN Crop Image Classification) ─────────────────────────
+    print("\n  Phase 3 — CV Crop Disease / Classification:")
+
+    cv_model_path  = pathlib.Path("models/saved/crop_cv_model.h5")
+    cv_labels_path = pathlib.Path("models/saved/crop_cv_labels.json")
+
+    if not cv_model_path.exists() or not cv_labels_path.exists():
+        warn("CV model or labels file missing — skipping Phase 3 inference test")
+        warn("Run: python training/train_cv.py  to generate them")
+        return all_ok
+
+    try:
+        # Lazy imports so the script doesn't crash if TF is not installed
+        import tensorflow as tf
+        from tensorflow.keras.preprocessing.image import img_to_array  # noqa
+        from PIL import Image
+        import io
+
+        cv_model = tf.keras.models.load_model(str(cv_model_path))
+        with open(cv_labels_path) as f:
+            class_labels = json.load(f)  # e.g. {"0": "Tomato_Healthy", "1": "Tomato_Blight", ...}
+
+        INPUT_SIZE = (224, 224)   # Change to match your model's expected input
+
+        # ── Synthetic test: feed a random noise image ────────────────────────
+        # In real testing replace this with actual crop leaf image paths
+        test_images = [
+            ("Synthetic noise image 1", _make_dummy_image(INPUT_SIZE)),
+            ("Synthetic noise image 2", _make_dummy_image(INPUT_SIZE)),
+        ]
+
+        print(f"    {WARN}  Using synthetic noise images for smoke test.")
+        print(f"    {WARN}  Replace with real crop images for meaningful results.\n")
+
+        for img_label, img_array in test_images:
+            try:
+                img_array = img_array / 255.0                          # normalise
+                img_array = np.expand_dims(img_array, axis=0)          # (1, H, W, 3)
+                preds     = cv_model.predict(img_array, verbose=0)     # (1, num_classes)
+                top_idx   = int(np.argmax(preds[0]))
+                top_conf  = float(preds[0][top_idx])
+                top_label = class_labels.get(str(top_idx), f"class_{top_idx}")
+
+                # Top-3 predictions
+                top3_idx  = np.argsort(preds[0])[::-1][:3]
+                top3      = [(class_labels.get(str(i), f"class_{i}"), round(float(preds[0][i]), 3))
+                             for i in top3_idx]
+
+                status = TICK if top_conf > 0 else CROSS
+                print(f"    {status}  {img_label}")
+                print(f"         Top prediction : {top_label}  ({top_conf*100:.1f}%)")
+                print(f"         Top-3          : {top3}")
+
+                if top_conf <= 0:
+                    all_ok = False
+            except Exception as e:
+                fail(f"  {img_label} inference failed: {e}")
+                all_ok = False
+
+        # ── Model summary sanity check ────────────────────────────────────────
+        total_params = cv_model.count_params()
+        num_classes  = len(class_labels)
+        output_shape = cv_model.output_shape
+
+        print(f"\n    Model sanity:")
+        ok(f"{'Total params':<28} {total_params:,}")
+        ok(f"{'Num classes':<28} {num_classes}")
+        ok(f"{'Output shape':<28} {output_shape}")
+
+        if output_shape[-1] != num_classes:
+            fail(f"Output neurons ({output_shape[-1]}) != num label classes ({num_classes}) — mismatch!")
+            all_ok = False
+
+    except ImportError as e:
+        warn(f"TensorFlow / Pillow not installed: {e}")
+        warn("Run:  pip install tensorflow pillow")
+    except Exception as e:
+        fail(f"Phase 3 CV check failed: {e}")
+        all_ok = False
+
     return all_ok
+
+
+def _make_dummy_image(size):
+    """Return a random uint8 numpy array shaped (H, W, 3) for smoke testing."""
+    import numpy as np
+    return np.random.randint(0, 256, (*size, 3), dtype=np.uint8).astype("float32")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -213,11 +320,11 @@ def check_live_api(base_url: str):
     # Phase 1 API tests
     print("\n  Phase 1 — /api/price/predict:")
     price_tests = [
-        ("Tomato",  "Maharashtra", "Pune",      500,  6,  "Kharif"),
-        ("Potato",  "Punjab",       "Ludhiana", 2000, 3,  "Rabi"),
-        ("Wheat",   "Haryana",      "Karnal",   4500, 4,  "Rabi"),
-        ("Mango",   "Maharashtra",  "Ratnagiri", 800, 5,  "Summer"),
-        ("Onion",   "Karnataka",    "Bangalore", 800, 4,  "Summer"),
+        ("Tomato",  "Maharashtra", "Pune",       500,  6, "Kharif"),
+        ("Potato",  "Punjab",       "Ludhiana",  2000, 3, "Rabi"),
+        ("Wheat",   "Haryana",      "Karnal",    4500, 4, "Rabi"),
+        ("Mango",   "Maharashtra",  "Ratnagiri",  800, 5, "Summer"),
+        ("Onion",   "Karnataka",    "Bangalore",  800, 4, "Summer"),
     ]
     for crop, state, district, qty, month, season in price_tests:
         payload = {"cropName": crop, "state": state, "district": district,
@@ -235,7 +342,7 @@ def check_live_api(base_url: str):
     print("\n  Phase 1 — validation (should return 422):")
     bad_tests = [
         ("bad season",    {"cropName":"Tomato","state":"MH","district":"Pune","quantity":100,"month":6,"season":"Invalid"}),
-        ("zero quantity", {"cropName":"Tomato","state":"MH","district":"Pune","quantity":0, "month":6,"season":"Kharif"}),
+        ("zero quantity", {"cropName":"Tomato","state":"MH","district":"Pune","quantity":0,  "month":6,"season":"Kharif"}),
         ("month 13",      {"cropName":"Tomato","state":"MH","district":"Pune","quantity":100,"month":13,"season":"Kharif"}),
     ]
     for label, payload in bad_tests:
@@ -248,29 +355,49 @@ def check_live_api(base_url: str):
     # Phase 2 API tests
     print("\n  Phase 2 — /api/demand/forecast:")
     demand_tests = [
-        ("Tomato",  "Maharashtra", 6,  "Kharif",  4),
-        ("Potato",  "Punjab",      3,  "Rabi",    3),
-        ("Wheat",   "Haryana",     4,  "Rabi",    2),
-        ("Onion",   "Karnataka",   4,  "Summer",  4),
+        ("Tomato",  "Maharashtra", 6, "Kharif", 4),
+        ("Potato",  "Punjab",      3, "Rabi",   3),
+        ("Wheat",   "Haryana",     4, "Rabi",   2),
+        ("Onion",   "Karnataka",   4, "Summer", 4),
     ]
     for crop, state, month, season, weeks in demand_tests:
         payload = {"cropName": crop, "state": state,
                    "month": month, "season": season, "forecastWeeks": weeks}
         r = client.post("/api/demand/forecast", json=payload)
         if r.status_code == 200:
-            d  = r.json()
+            d      = r.json()
             scores = [f["demand_score"] for f in d["forecasts"]]
             labels = [f["demand_label"] for f in d["forecasts"]]
             ok(f"{crop:<12}  {weeks} weeks → scores: {[round(s,2) for s in scores]}  labels: {labels}")
         else:
             fail(f"{crop:<12}  status {r.status_code}  {r.text[:120]}")
 
+    # Phase 3 CV API test
+    print("\n  Phase 3 — /api/cv/classify (multipart image upload):")
+    cv_api_tests = [
+        "test_assets/tomato_leaf.jpg",
+        "test_assets/potato_leaf.jpg",
+    ]
+    for img_path in cv_api_tests:
+        p = pathlib.Path(img_path)
+        if not p.exists():
+            warn(f"{img_path}  — test image missing, skipping")
+            continue
+        with open(p, "rb") as fh:
+            r = client.post("/api/cv/classify", files={"file": (p.name, fh, "image/jpeg")})
+        if r.status_code == 200:
+            d = r.json()
+            ok(f"{p.name:<22}  top: {d.get('label')}  conf: {d.get('confidence'):.2%}  "
+               f"top3: {d.get('top3')}")
+        else:
+            fail(f"{p.name:<22}  status {r.status_code}  {r.text[:120]}")
+
     # Batch test
     print("\n  Phase 1 — /api/price/batch (3 items):")
     batch_payload = {"items": [
-        {"cropName":"Tomato","state":"Maharashtra","district":"Pune",     "quantity":500, "month":6,"season":"Kharif"},
-        {"cropName":"Potato","state":"Punjab",      "district":"Ludhiana","quantity":2000,"month":3,"season":"Rabi"},
-        {"cropName":"Mango", "state":"Maharashtra", "district":"Ratnagiri","quantity":800,"month":5,"season":"Summer"},
+        {"cropName":"Tomato","state":"Maharashtra","district":"Pune",      "quantity":500, "month":6,"season":"Kharif"},
+        {"cropName":"Potato","state":"Punjab",      "district":"Ludhiana", "quantity":2000,"month":3,"season":"Rabi"},
+        {"cropName":"Mango", "state":"Maharashtra", "district":"Ratnagiri","quantity":800, "month":5,"season":"Summer"},
     ]}
     r = client.post("/api/price/batch", json=batch_payload)
     if r.status_code == 200:
@@ -289,7 +416,6 @@ def check_live_api(base_url: str):
 # ─────────────────────────────────────────────────────────────────────────────
 # Main
 # ─────────────────────────────────────────────────────────────────────────────
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Verify AgriConnect ML models")
     parser.add_argument("--api", action="store_true", help="Also run live API tests (server must be running)")
@@ -297,7 +423,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     print(f"\n{B}AgriConnect ML — Model Verification{W}")
-    print(f"{B}Phase 1 (Price) + Phase 2 (Demand){W}")
+    print(f"{B}Phase 1 (Price) + Phase 2 (Demand) + Phase 3 (CV){W}")
 
     check_model_files()
     check_metrics()
