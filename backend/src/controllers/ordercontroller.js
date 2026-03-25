@@ -268,14 +268,15 @@ const acceptOrder = asyncHandler(async (req, res) => {
   return res.status(200).json({ success: true, data: { order } })
 })
 
+// FIX: populate farmer so farmer.name is available for the notification
 const declineOrder = asyncHandler(async (req, res) => {
-  const order = await Order.findById(req.params.id)
+  const order = await Order.findById(req.params.id).populate('farmer', 'name')
 
   if (!order) {
     throw new ApiError(404, 'Order not found')
   }
 
-  if (order.farmer.toString() !== req.user._id.toString()) {
+  if (order.farmer._id.toString() !== req.user._id.toString()) {
     throw new ApiError(403, 'You are not authorized to decline this order')
   }
 
@@ -295,9 +296,10 @@ const declineOrder = asyncHandler(async (req, res) => {
   order.status = 'declined'
   await order.save()
 
+  // FIX: farmer.name now available because we populated above
   await notifyOrderDeclined(
     order.buyer,
-    '', // farmer name not loaded here
+    order.farmer.name,
     order.orderDetails.cropName,
     order._id
   )
@@ -371,6 +373,7 @@ const schedulePickup = asyncHandler(async (req, res) => {
   return res.status(200).json({ success: true, data: { order } })
 })
 
+// FIX: verify calling transporter is the one assigned to this order
 const verifyOTPAndPickup = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id)
     .populate('buyer')
@@ -378,6 +381,16 @@ const verifyOTPAndPickup = asyncHandler(async (req, res) => {
 
   if (!order) {
     throw new ApiError(404, 'Order not found')
+  }
+
+  // FIX: bind OTP verification to the assigned transporter
+  const transporter = await Transporter.findOne({ user: req.user._id })
+  if (!transporter) {
+    throw new ApiError(403, 'No transporter profile found for this account')
+  }
+  const assignedId = order.delivery.pickup?.transporter?.toString()
+  if (!assignedId || assignedId !== transporter._id.toString()) {
+    throw new ApiError(403, 'You are not the assigned transporter for this order')
   }
 
   const result = verifyOTP(order, req.body.otp)
@@ -392,10 +405,6 @@ const verifyOTPAndPickup = asyncHandler(async (req, res) => {
   order.delivery.pickup.farmerConfirmedLoading = true
 
   await order.save()
-
-  const transporter = await Transporter.findById(
-    order.delivery.pickup.transporter
-  )
 
   await notifyOrderInTransit(
     order.buyer._id,
@@ -468,11 +477,32 @@ const confirmHandoff = asyncHandler(async (req, res) => {
   return res.status(200).json({ success: true, data: { order } })
 })
 
+// FIX: verify assigned transporter + correct status before marking delivered
 const markDelivered = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id).populate('buyer cropListing')
 
   if (!order) {
     throw new ApiError(404, 'Order not found')
+  }
+
+  // FIX: only valid for platform_transporter flow
+  if (order.delivery.method !== 'platform_transporter') {
+    throw new ApiError(400, 'markDelivered is only valid for platform transporter orders')
+  }
+
+  // FIX: order must be in_transit before it can be marked delivered
+  if (order.status !== 'in_transit') {
+    throw new ApiError(400, `Cannot mark delivered — order is currently "${order.status}"`)
+  }
+
+  // FIX: verify the calling transporter is the one assigned to this order
+  const transporter = await Transporter.findOne({ user: req.user._id })
+  if (!transporter) {
+    throw new ApiError(403, 'No transporter profile found for this account')
+  }
+  const assignedId = order.delivery.pickup?.transporter?.toString()
+  if (!assignedId || assignedId !== transporter._id.toString()) {
+    throw new ApiError(403, 'You are not the assigned transporter for this order')
   }
 
   order.status = 'delivered'
@@ -578,11 +608,20 @@ const confirmReceived = asyncHandler(async (req, res) => {
   return res.status(200).json({ success: true, data: { order } })
 })
 
+// FIX: added ownership check — only the buyer or farmer on the order can raise a dispute
 const raiseDispute = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id)
 
   if (!order) {
     throw new ApiError(404, 'Order not found')
+  }
+
+  // FIX: verify req.user is the buyer or farmer on this order
+  const isBuyer = order.buyer.toString() === req.user._id.toString()
+  const isFarmer = order.farmer.toString() === req.user._id.toString()
+
+  if (!isBuyer && !isFarmer) {
+    throw new ApiError(403, 'You are not authorized to raise a dispute on this order')
   }
 
   if (['completed', 'cancelled', 'resolved'].includes(order.status)) {

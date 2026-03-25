@@ -30,14 +30,19 @@ export const getStatusColor = (status) => {
   return map[status] || 'bg-gray-100 text-gray-800';
 };
 
+// FIX: read delivery method from order.delivery.method (not order.deliveryMethod)
 export const getNextAction = (order, role) => {
+  const deliveryMethod = order.delivery?.method; // FIX: correct field path
+
   if (role === 'farmer') {
     if (order.status === 'pending') return { label: "Accept order", action: "accept", color: "green" };
-    if (order.status === 'accepted' && order.deliveryMethod === 'farmer_delivers') return { label: "Mark dispatched", action: "dispatch", color: "green" };
-    if (order.status === 'accepted' && order.deliveryMethod === 'buyer_pickup') return { label: "Confirm handoff", action: "confirm-handoff", color: "green" };
+    if (order.status === 'accepted' && deliveryMethod === 'farmer_delivers') return { label: "Mark dispatched", action: "dispatch", color: "green" };
+    if (order.status === 'accepted' && deliveryMethod === 'buyer_pickup') return { label: "Confirm handoff", action: "confirm-handoff", color: "green" };
+    if (order.status === 'accepted' && deliveryMethod === 'platform_transporter') return { label: "Schedule pickup", action: "schedule-pickup", color: "purple" };
   }
   if (role === 'buyer') {
     if (order.status === 'delivered') return { label: "Confirm received", action: "confirm-received", color: "green" };
+    if (order.status === 'pending') return { label: "Cancel order", action: "cancel", color: "red" };
   }
   if (role === 'transporter') {
     if (order.status === 'scheduled') return { label: "Verify OTP", action: "verify-otp", color: "green" };

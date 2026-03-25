@@ -3,7 +3,7 @@ import api from '../axiosConfig';
 export const ordersApi = {
   createOrder: async (payload) => {
     const body = {
-      cropListingId: payload.listingId,
+      cropListingId: payload.listingId || payload.cropListingId,
       quantity: Number(payload.quantity),
       deliveryMethod: payload.deliveryMethod,
       buyerAddress: payload.deliveryAddress || payload.buyerAddress,
@@ -14,6 +14,7 @@ export const ordersApi = {
     const order = res.data.data?.order || res.data.data;
     return { data: { data: order } };
   },
+
   getOrders: async (params) => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const url = user.role === 'farmer' ? '/orders/incoming' : '/orders/my';
@@ -21,18 +22,35 @@ export const ordersApi = {
     const list = Array.isArray(res.data.data) ? res.data.data : (res.data.data?.orders || []);
     return { data: { data: list } };
   },
+
+  // FIX: dedicated buyer orders fetch (always hits /orders/my regardless of role in localStorage)
+  getBuyerOrders: async (params) => {
+    const res = await api.get('/orders/my', { params: params || {} });
+    const list = Array.isArray(res.data.data) ? res.data.data : (res.data.data?.orders || []);
+    return { data: { data: list } };
+  },
+
   getOrderById: async (id) => {
     const res = await api.get(`/orders/${id}`);
     return { data: { data: res.data.data } };
   },
+
   acceptOrder: async (id) => {
-    await api.patch(`/orders/${id}/status`, { status: 'accepted' });
+    await api.patch(`/orders/${id}/accept`);
     return { data: { success: true } };
   },
+
   declineOrder: async (id) => {
     await api.patch(`/orders/${id}/status`, { status: 'declined' });
     return { data: { success: true } };
   },
+
+  // FIX: dedicated buyer cancel endpoint — separate from farmer decline
+  cancelOrder: async (id) => {
+    await api.patch(`/orders/${id}/status`, { status: 'cancelled' });
+    return { data: { success: true } };
+  },
+
   schedulePickup: async (id, details) => {
     const res = await api.patch(`/orders/${id}/schedule-pickup`, {
       scheduledDate: details.date || details.scheduledDate,
@@ -40,14 +58,17 @@ export const ordersApi = {
     });
     return { data: res.data.data };
   },
+
   dispatchOrder: async (id) => {
     await api.patch(`/orders/${id}/dispatch`);
     return { data: { success: true } };
   },
+
   confirmHandoff: async (id) => {
     await api.patch(`/orders/${id}/confirm-handoff`);
     return { data: { success: true } };
   },
+
   confirmReceived: async (id, review) => {
     const body = {
       farmerRating: review?.farmerRating ?? review?.rating ?? 5,
@@ -58,6 +79,7 @@ export const ordersApi = {
     await api.patch(`/orders/${id}/confirm-received`, body);
     return { data: { success: true } };
   },
+
   raiseDispute: async (id, payload) => {
     const formData = new FormData();
     if (payload.reason != null) formData.append('reason', payload.reason);

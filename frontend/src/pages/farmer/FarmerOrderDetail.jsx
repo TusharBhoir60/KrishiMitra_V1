@@ -37,7 +37,7 @@ export const FarmerOrderDetail = () => {
 
   useEffect(() => {
     fetchOrder();
-    const interval = setInterval(fetchOrder, 30000); // 30s polling
+    const interval = setInterval(fetchOrder, 30000);
     return () => clearInterval(interval);
   }, [id]);
 
@@ -70,8 +70,10 @@ export const FarmerOrderDetail = () => {
   if (loading || !order) return <div className="p-6 grid gap-6 max-w-4xl mx-auto"><SkeletonCard/><SkeletonCard/></div>;
 
   const nextAction = getNextAction(order, 'farmer');
-  
-  // Date helpers for scheduling
+
+  // FIX: read from order.delivery.method instead of order.deliveryMethod
+  const deliveryMethod = order.delivery?.method;
+
   const today = dayjs().format('YYYY-MM-DD');
   const tomorrow = dayjs().add(1, 'day').format('YYYY-MM-DD');
   const dayAfter = dayjs().add(2, 'day').format('YYYY-MM-DD');
@@ -92,7 +94,8 @@ export const FarmerOrderDetail = () => {
 
         {/* Status Tracker */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-          <StatusProgress currentStatus={order.status} deliveryMethod={order.deliveryMethod} />
+          {/* FIX: pass delivery.method not deliveryMethod */}
+          <StatusProgress currentStatus={order.status} deliveryMethod={deliveryMethod} />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -118,10 +121,11 @@ export const FarmerOrderDetail = () => {
                       <Phone className="w-5 h-5" />
                     </a>
                   </div>
-                  {(order.deliveryMethod === 'farmer_delivers' || order.deliveryMethod === 'platform_transporter') && (
+                  {/* FIX: use deliveryMethod variable */}
+                  {(deliveryMethod === 'farmer_delivers' || deliveryMethod === 'platform_transporter') && (
                     <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
                       <p className="text-xs uppercase font-bold text-gray-400 mb-1">Delivery Address</p>
-                      <p className="text-farm-dark font-medium">{order.deliveryAddress}</p>
+                      <p className="text-farm-dark font-medium">{order.delivery?.buyerAddress}</p>
                     </div>
                   )}
                 </div>
@@ -150,8 +154,8 @@ export const FarmerOrderDetail = () => {
                 </div>
               )}
 
-              {/* FARMER DELIVERS ACTIONS */}
-              {order.status === 'accepted' && order.deliveryMethod === 'farmer_delivers' && (
+              {/* FIX: use deliveryMethod variable for all checks below */}
+              {order.status === 'accepted' && deliveryMethod === 'farmer_delivers' && (
                 <div>
                   <h3 className="font-bold text-lg mb-2 text-farm-dark">🚜 Arrange Delivery</h3>
                   <p className="text-gray-600 mb-4">You chose to deliver this order yourself. Click below when you start the journey.</p>
@@ -161,8 +165,7 @@ export const FarmerOrderDetail = () => {
                 </div>
               )}
 
-              {/* BUYER PICKUP ACTIONS */}
-              {order.status === 'accepted' && order.deliveryMethod === 'buyer_pickup' && (
+              {order.status === 'accepted' && deliveryMethod === 'buyer_pickup' && (
                 <div>
                   <h3 className="font-bold text-lg mb-2 text-farm-dark">📍 Awaiting Buyer Handoff</h3>
                   <p className="text-gray-600 mb-4">The buyer is responsible for picking this up from your farm. Once they physically collect the crops, confirm below.</p>
@@ -172,8 +175,7 @@ export const FarmerOrderDetail = () => {
                 </div>
               )}
 
-              {/* PLATFORM TRANSPORTER - SCHEDULING */}
-              {order.status === 'accepted' && order.deliveryMethod === 'platform_transporter' && (
+              {order.status === 'accepted' && deliveryMethod === 'platform_transporter' && (
                 <div>
                   <h3 className="font-bold text-lg mb-4 text-farm-dark flex items-center gap-2"><Clock className="w-5 h-5 text-purple-600" /> Schedule Transporter Pickup</h3>
                   
@@ -205,16 +207,17 @@ export const FarmerOrderDetail = () => {
                 </div>
               )}
 
-              {/* PLATFORM TRANSPORTER - SCHEDULED OTP */}
-              {order.status === 'scheduled' && order.deliveryMethod === 'platform_transporter' && (
+              {order.status === 'scheduled' && deliveryMethod === 'platform_transporter' && (
                 <div className="text-center">
                   <h3 className="font-bold text-xl mb-1 text-farm-dark">Truck is Assigned</h3>
-                  <p className="text-gray-500 mb-6">Transporter will arrive on {formatDateTime(order.pickupDetails.date)}</p>
+                  {/* FIX: use order.delivery.pickup.scheduledDate */}
+                  <p className="text-gray-500 mb-6">Transporter will arrive on {formatDateTime(order.delivery?.pickup?.scheduledDate)}</p>
                   
                   <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 inline-block">
                     <p className="text-sm font-bold uppercase tracking-widest text-gray-400 mb-3">Verification OTP</p>
                     <div className="flex justify-center gap-3">
-                      {order.otp.split('').map((digit, i) => (
+                      {/* FIX: use order.delivery.pickup.otpCode */}
+                      {order.delivery?.pickup?.otpCode?.split('').map((digit, i) => (
                         <div key={i} className="w-14 h-16 bg-white border-2 border-green-500 rounded-xl flex items-center justify-center text-3xl font-bold text-green-700 shadow-sm">{digit}</div>
                       ))}
                     </div>
@@ -223,7 +226,6 @@ export const FarmerOrderDetail = () => {
                 </div>
               )}
 
-              {/* COMPLETED */}
               {order.status === 'completed' && (
                 <div className="text-center py-4">
                   <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-3"><CheckCircle className="w-8 h-8" /></div>
@@ -232,18 +234,17 @@ export const FarmerOrderDetail = () => {
                 </div>
               )}
               
-              {/* DISPUTED */}
               {order.status === 'disputed' && (
                 <div className="bg-red-50 border border-red-200 p-4 rounded-xl">
                   <h3 className="font-bold text-red-800 flex items-center gap-2 mb-2"><AlertTriangle className="w-5 h-5"/> Order Under Dispute</h3>
-                  <p className="text-sm text-red-700 mb-4">{order.disputeReason}</p>
+                  {/* FIX: use order.dispute.reason */}
+                  <p className="text-sm text-red-700 mb-4">{order.dispute?.reason}</p>
                   <textarea placeholder="Submit your response / explanation to the platform admins..." className="w-full p-3 rounded-xl border border-red-200 outline-none focus:ring-2 focus:ring-red-400 text-sm mb-3" rows={3}></textarea>
                   <button className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold text-sm w-full">Submit Response to Admin</button>
                   <p className="text-xs text-red-500 mt-2 text-center">Platform Admin SLA: 48 Hours</p>
                 </div>
               )}
 
-              {/* Fallback for states with no specific action container */}
               {['in_transit', 'delivered', 'declined', 'cancelled'].includes(order.status) && (
                 <div className="text-center py-4">
                   <p className="text-gray-600 font-medium">Order is currently {order.status.replace('_', ' ')}.</p>
@@ -253,16 +254,17 @@ export const FarmerOrderDetail = () => {
             </div>
 
             {/* Transporter Info if assigned */}
-            {order.transporter && (
+            {order.delivery?.pickup?.transporter && (
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex justify-between items-center">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center text-purple-700"><Truck className="w-6 h-6" /></div>
                   <div>
-                    <h4 className="font-bold text-farm-dark">{order.transporter.name}</h4>
-                    <p className="text-sm text-gray-500">Vehicle: {order.transporter.vehicleNumber}</p>
+                    {/* FIX: use order.delivery.pickup.transporter.* */}
+                    <h4 className="font-bold text-farm-dark">{order.delivery.pickup.transporter.companyName}</h4>
+                    <p className="text-sm text-gray-500">Vehicle: {order.delivery.pickup.transporter.vehicleNumber}</p>
                   </div>
                 </div>
-                <a href={`tel:${order.transporter.phone}`} className="p-3 bg-gray-50 border border-gray-200 rounded-xl hover:bg-gray-100"><Phone className="w-5 h-5 text-farm-dark" /></a>
+                <a href={`tel:${order.delivery.pickup.transporter.phone}`} className="p-3 bg-gray-50 border border-gray-200 rounded-xl hover:bg-gray-100"><Phone className="w-5 h-5 text-farm-dark" /></a>
               </div>
             )}
           </div>
@@ -272,21 +274,26 @@ export const FarmerOrderDetail = () => {
             
             {/* Crop Info */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-              <img src={order.listing?.images?.[0]?.url || 'https://via.placeholder.com/400x200?text=Crop'} className="w-full h-32 object-cover rounded-xl mb-4" alt="crop" />
-              <h3 className="font-bold text-xl text-farm-dark mb-1">{order.cropName}</h3>
-              <p className="text-farm-green font-bold text-lg mb-4">{formatINR(order.pricePerKg)}/kg</p>
+              <img src={order.cropListing?.images?.[0]?.url || 'https://via.placeholder.com/400x200?text=Crop'} className="w-full h-32 object-cover rounded-xl mb-4" alt="crop" />
+              {/* FIX: use order.orderDetails.* */}
+              <h3 className="font-bold text-xl text-farm-dark mb-1">{order.orderDetails?.cropName}</h3>
+              <p className="text-farm-green font-bold text-lg mb-4">₹{order.orderDetails?.pricePerKg}/kg</p>
               
               <div className="space-y-2 text-sm text-gray-600 border-t border-gray-100 pt-4">
-                <div className="flex justify-between"><span>Grade:</span> <span className="font-medium text-farm-dark">{order.grade}</span></div>
-                <div className="flex justify-between"><span>Quantity:</span> <span className="font-medium text-farm-dark">{order.quantity}kg</span></div>
+                <div className="flex justify-between"><span>Grade:</span> <span className="font-medium text-farm-dark">{order.orderDetails?.grade}</span></div>
+                <div className="flex justify-between"><span>Quantity:</span> <span className="font-medium text-farm-dark">{order.orderDetails?.quantity}kg</span></div>
                 <div className="flex justify-between"><span>Ordered on:</span> <span className="font-medium text-farm-dark">{formatDateTime(order.createdAt).split(',')[0]}</span></div>
               </div>
             </div>
 
-            {/* Cost Breakdown */}
-            <CostBreakdown cropAmount={order.cropAmount} deliveryFee={order.deliveryFee} platformFee={order.platformFee} totalAmount={order.totalAmount} />
+            {/* FIX: use order.delivery.* and order.orderDetails.* for cost fields */}
+            <CostBreakdown
+              cropAmount={order.orderDetails?.cropAmount}
+              deliveryFee={order.delivery?.deliveryFee}
+              platformFee={order.delivery?.platformFee}
+              totalAmount={order.delivery?.totalAmount}
+            />
             
-            {/* Help/Report */}
             {!['completed', 'cancelled', 'disputed', 'declined'].includes(order.status) && (
               <button onClick={() => navigate(`/farmer/orders/${id}/dispute`)} className="w-full py-3 border-2 border-red-100 text-red-600 font-bold rounded-xl hover:bg-red-50 transition-colors flex justify-center items-center gap-2">
                 <AlertTriangle className="w-4 h-4" /> Raise Issue / Dispute

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom'; // FIX: added useParams
 import { useAuth } from '../../hooks/useAuth';
 import { ordersApi } from '../../api/endpoints/ordersApi';
 import { Badge } from '../../components/ui/Badge';
@@ -13,8 +13,7 @@ import { ShoppingBag, Truck, CheckCircle, Navigation, MapPin } from 'lucide-reac
 import toast from 'react-hot-toast';
 
 export const BuyerOrderDetail = () => {
-  const { id } = useParams();
-  
+  const { id } = useParams(); // FIX: now imported above
   const navigate = useNavigate();
   const { user } = useAuth();
   const [order, setOrder] = useState(null);
@@ -42,9 +41,11 @@ export const BuyerOrderDetail = () => {
   const handleAction = async (actionStr) => {
     try {
       if (actionStr === 'cancel') {
-        if(window.confirm('Cancel this pending order?')) {
-          await ordersApi.declineOrder(id, 'Buyer cancelled request'); // Reusing decline endpoint for cancellation logic since buyer cancels
+        if (window.confirm('Cancel this pending order?')) {
+          // FIX: use dedicated buyer cancel endpoint instead of farmer-only declineOrder
+          await ordersApi.cancelOrder(id);
           toast.success('Order cancelled');
+          fetchOrder();
         }
       } else if (actionStr === 'confirm-received') {
         setShowReview(true);
@@ -68,6 +69,9 @@ export const BuyerOrderDetail = () => {
 
   if (loading || !order) return <div className="p-6 grid gap-6 max-w-4xl mx-auto"><SkeletonCard /></div>;
 
+  // FIX: use order.delivery.method throughout instead of order.deliveryMethod
+  const deliveryMethod = order.delivery?.method;
+
   return (
     <div className="min-h-screen bg-gray-50 pb-20 pt-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 space-y-6">
@@ -78,12 +82,20 @@ export const BuyerOrderDetail = () => {
             <h1 className="text-2xl font-display font-bold text-farm-dark">Order #{order._id.slice(-6).toUpperCase()}</h1>
             <p className="text-gray-500 text-sm mt-1">{formatDateTime(order.createdAt).split(',')[0]}</p>
           </div>
-          {order.status === 'pending' && <button onClick={() => handleAction('cancel')} className="text-red-500 font-medium hover:text-red-700 text-sm border border-red-200 px-4 py-2 rounded-lg">Cancel Request</button>}
+          {order.status === 'pending' && (
+            <button
+              onClick={() => handleAction('cancel')}
+              className="text-red-500 font-medium hover:text-red-700 text-sm border border-red-200 px-4 py-2 rounded-lg"
+            >
+              Cancel Request
+            </button>
+          )}
         </div>
 
         {/* Status Tracker */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-          <StatusProgress currentStatus={order.status} deliveryMethod={order.deliveryMethod} />
+          {/* FIX: pass delivery.method not deliveryMethod */}
+          <StatusProgress currentStatus={order.status} deliveryMethod={deliveryMethod} />
         </div>
 
         {/* Action center depending on status */}
@@ -98,32 +110,42 @@ export const BuyerOrderDetail = () => {
             </div>
           )}
 
-          {order.status === 'accepted' && order.deliveryMethod === 'farmer_delivers' && (
+          {/* FIX: use deliveryMethod variable (order.delivery.method) for all conditional checks */}
+          {order.status === 'accepted' && deliveryMethod === 'farmer_delivers' && (
             <div className="p-6">
               <h3 className="font-bold text-lg mb-2 text-farm-dark">Farmer is preparing delivery</h3>
-              <p className="text-gray-600">The farmer will deliver the items to your address on {formatDateTime(order.preferredDate).split(',')[0]}.</p>
+              <p className="text-gray-600">The farmer will deliver the items to your address on {formatDateTime(order.delivery?.agreedDate).split(',')[0]}.</p>
             </div>
           )}
 
-          {order.status === 'accepted' && order.deliveryMethod === 'buyer_pickup' && (
+          {order.status === 'accepted' && deliveryMethod === 'buyer_pickup' && (
             <div className="p-6">
               <h3 className="font-bold text-lg mb-3 text-farm-dark flex items-center gap-2"><MapPin className="text-blue-500 w-5 h-5"/> Collect your crop</h3>
-              <p className="font-medium text-farm-dark bg-gray-50 p-4 border border-gray-200 rounded-xl mb-4">{order.farmer?.location?.address || `${order.farmer?.location?.village}, ${order.farmer?.location?.district}`}</p>
-              <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.farmer?.location?.village + ' ' + order.farmer?.location?.district)}`} target="_blank" rel="noreferrer" className="inline-flex py-3 px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md gap-2 items-center">
+              <p className="font-medium text-farm-dark bg-gray-50 p-4 border border-gray-200 rounded-xl mb-4">
+                {order.farmer?.location?.address || `${order.farmer?.location?.village}, ${order.farmer?.location?.district}`}
+              </p>
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.farmer?.location?.village + ' ' + order.farmer?.location?.district)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex py-3 px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md gap-2 items-center"
+              >
                 <Navigation className="w-5 h-5" /> Get Directions
               </a>
             </div>
           )}
 
-          {order.status === 'scheduled' && order.deliveryMethod === 'platform_transporter' && (
+          {order.status === 'scheduled' && deliveryMethod === 'platform_transporter' && (
             <div className="p-6">
               <h3 className="font-bold text-lg mb-2 text-farm-dark">Pickup Scheduled</h3>
-              <p className="text-gray-600">The transporter will pick up the crop on {formatDateTime(order.pickupDetails?.date).split(',')[0]} at {order.pickupDetails?.slot}.</p>
+              <p className="text-gray-600">
+                The transporter will pick up the crop on {formatDateTime(order.delivery?.pickup?.scheduledDate).split(',')[0]} at {order.delivery?.pickup?.scheduledSlot}.
+              </p>
               <div className="mt-4 p-4 border border-purple-200 bg-purple-50 rounded-xl flex items-center gap-4">
                 <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-purple-600"><Truck className="w-6 h-6"/></div>
                 <div>
-                  <p className="font-bold text-purple-900">{order.transporter?.name}</p>
-                  <p className="text-sm text-purple-800 tracking-wider font-mono">{order.transporter?.vehicleNumber}</p>
+                  <p className="font-bold text-purple-900">{order.delivery?.pickup?.transporter?.companyName}</p>
+                  <p className="text-sm text-purple-800 tracking-wider font-mono">{order.delivery?.pickup?.transporter?.vehicleNumber}</p>
                 </div>
               </div>
             </div>
@@ -134,13 +156,11 @@ export const BuyerOrderDetail = () => {
               <h3 className="font-bold text-lg mb-2 text-farm-dark flex items-center gap-2"><Truck className="w-5 h-5 text-blue-500"/> Order is on the way!</h3>
               <div className="relative pl-6 space-y-4 mt-6">
                 <div className="absolute left-2 top-2 bottom-2 w-0.5 bg-gray-200"></div>
-                
                 <div className="relative">
                   <div className="absolute -left-[23px] top-1 w-3 h-3 bg-green-500 rounded-full ring-4 ring-green-100"></div>
                   <p className="font-medium text-farm-dark">Picked up from farm</p>
                   <p className="text-xs text-gray-500">Confirmed by OTP</p>
                 </div>
-                
                 <div className="relative pt-2">
                   <div className="absolute -left-[23px] top-3 w-3 h-3 bg-blue-500 rounded-full ring-4 ring-blue-100 animate-pulse"></div>
                   <p className="font-medium text-farm-dark text-blue-700">In transit to your address</p>
@@ -155,14 +175,15 @@ export const BuyerOrderDetail = () => {
               <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4 border-2 border-green-500"><CheckCircle className="w-8 h-8"/></div>
               <h3 className="font-bold text-2xl mb-2 text-green-900">Your order has arrived! 🎉</h3>
               <div className="text-sm text-green-800 mb-6 space-y-2 font-medium">
-                <p>□ Check quantity: {order.quantity}kg</p>
-                <p>□ Check quality: Grade {order.grade}</p>
+                <p>□ Check quantity: {order.orderDetails?.quantity}kg</p>
+                <p>□ Check quality: Grade {order.orderDetails?.grade}</p>
               </div>
-              
-              <button onClick={() => handleAction('confirm-received')} className="w-full py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-lg shadow-green-600/30 text-lg transition-transform hover:-translate-y-1">
+              <button
+                onClick={() => handleAction('confirm-received')}
+                className="w-full py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-lg shadow-green-600/30 text-lg transition-transform hover:-translate-y-1"
+              >
                 ✓ Confirm Received · Release Payment
               </button>
-              
               <p className="text-xs text-green-700 font-medium text-center mt-4 uppercase tracking-widest">
                 Auto-releases in 48 hours
               </p>
@@ -192,7 +213,12 @@ export const BuyerOrderDetail = () => {
                   <p className="text-green-700 text-sm">Thank you for purchasing on KrishiMitra.</p>
                 </div>
               </div>
-              <button onClick={() => navigate(`/buyer/crops/${order.listing?._id}`)} className="px-6 py-2 bg-blue-50 text-blue-600 font-bold rounded-xl border border-blue-200 hover:bg-blue-100">Buy Again</button>
+              <button
+                onClick={() => navigate(`/buyer/crops/${order.cropListing?._id}`)}
+                className="px-6 py-2 bg-blue-50 text-blue-600 font-bold rounded-xl border border-blue-200 hover:bg-blue-100"
+              >
+                Buy Again
+              </button>
             </div>
           )}
 
@@ -210,10 +236,18 @@ export const BuyerOrderDetail = () => {
             <h3 className="font-bold text-lg mb-4 text-farm-dark border-b border-gray-100 pb-2">Farmer</h3>
             <p className="font-medium text-lg text-farm-dark">{order.farmer?.name}</p>
             <p className="text-gray-500 mb-3">{order.farmer?.location?.district}</p>
-            {order.status !== 'pending' && <p className="font-medium bg-gray-50 px-3 py-2 rounded-lg border border-gray-100 truncate">{order.farmer?.phone}</p>}
+            {order.status !== 'pending' && (
+              <p className="font-medium bg-gray-50 px-3 py-2 rounded-lg border border-gray-100 truncate">{order.farmer?.phone}</p>
+            )}
           </div>
 
-          <CostBreakdown cropAmount={order.cropAmount} deliveryFee={order.deliveryFee} platformFee={order.platformFee} totalAmount={order.totalAmount} />
+          {/* FIX: use order.delivery.* for cost fields */}
+          <CostBreakdown
+            cropAmount={order.orderDetails?.cropAmount}
+            deliveryFee={order.delivery?.deliveryFee}
+            platformFee={order.delivery?.platformFee}
+            totalAmount={order.delivery?.totalAmount}
+          />
         </div>
 
       </div>
