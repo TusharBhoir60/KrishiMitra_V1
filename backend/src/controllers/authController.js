@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken"
 import { User } from "../models/user.model.js"
+import Transporter from "../models/Transporter.js"
 import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
@@ -38,7 +39,7 @@ const sanitizeUser = (user) => {
 // ─── Controllers ──────────────────────────────────────────────────────────────
 
 export const register = asyncHandler(async (req, res) => {
-  const { name, email, password, role, phone, location, businessName, businessType, deliveryAddress, farmSize, farmingType } = req.body
+  const { name, email, password, role, phone, location, businessName, businessType, deliveryAddress, farmSize, farmingType, zones } = req.body
 
   const existing = await User.findOne({ email })
   if (existing) {
@@ -46,6 +47,22 @@ export const register = asyncHandler(async (req, res) => {
   }
 
   const user = await User.create({ name, email, password, role, phone, location, businessName, businessType, deliveryAddress, farmSize, farmingType })
+
+  // Item 5: Create Transporter profile if registering as transporter
+  if (role === 'transporter') {
+    if (!businessName || !phone) {
+      throw new ApiError(400, 'Transporter registration requires businessName and phone')
+    }
+
+    await Transporter.create({
+      user: user._id,
+      companyName: businessName,
+      phone,
+      zones: Array.isArray(zones) ? zones : [],
+      isAvailable: true,
+      isActive: true,
+    })
+  }
 
   return res
     .status(201)

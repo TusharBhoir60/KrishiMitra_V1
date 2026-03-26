@@ -195,17 +195,18 @@ const getOrderById = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, order, 'Order fetched successfully'))
 })
 
+// Farmer-only: accepted, declined — called via PATCH /:id/status (farmer guard on route)
 const updateOrderStatus = asyncHandler(async (req, res) => {
   const { status } = req.body
 
-  const ALLOWED_STATUSES = ['accepted', 'declined', 'cancelled']
+  const FARMER_ALLOWED_STATUSES = ['accepted', 'declined']
 
   if (!status) {
     throw new ApiError(400, 'status field is required')
   }
 
-  if (!ALLOWED_STATUSES.includes(status)) {
-    throw new ApiError(400, `Invalid status "${status}".`)
+  if (!FARMER_ALLOWED_STATUSES.includes(status)) {
+    throw new ApiError(400, `Invalid status "${status}". Farmers can only set: ${FARMER_ALLOWED_STATUSES.join(', ')}`)
   }
 
   const order = await Order.findById(req.params.id)
@@ -233,13 +234,56 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, updatedOrder, 'Order status updated'))
 })
 
-const acceptOrder = asyncHandler(async (req, res) => {
-  const order = await Order.findById(req.params.id).populate('buyer farmer cropListing')
+// Buyer-only: cancel their own order — called via PATCH /:id/cancel (buyer guard on route)
+const cancelOrder = asyncHandler(async (req, res) => {
+  const order = await Order.findById(req.params.id)
 
   if (!order) {
     throw new ApiError(404, 'Order not found')
   }
 
+  if (order.buyer.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, 'You are not authorized to cancel this order')
+  }
+
+  const CANCELLABLE_STATUSES = ['pending', 'accepted']
+
+  if (!CANCELLABLE_STATUSES.includes(order.status)) {
+    throw new ApiError(
+      400,
+      `Order cannot be cancelled — current status is "${order.status}"`
+    )
+  }
+
+  // Restore listing qty on cancel
+  const listing = await CropListing.findById(order.cropListing)
+  if (listing) {
+    listing.availableQty += order.orderDetails.quantity
+    if (listing.status === 'sold_out') {
+      listing.status = 'active'
+    }
+    await listing.save()
+  }
+
+  order.status = 'cancelled'
+  const updatedOrder = await order.save()
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updatedOrder, 'Order cancelled successfully'))
+})
+
+// FIX: populate only buyer + cropListing for notification; use ._id for farmer guard post-populate
+const acceptOrder = asyncHandler(async (req, res) => {
+  const order = await Order.findById(req.params.id)
+    .populate('buyer', 'name phone')
+    .populate('cropListing', 'cropName')
+
+  if (!order) {
+    throw new ApiError(404, 'Order not found')
+  }
+
+  // FIX: order.farmer is NOT populated here — safe to call .toString() directly
   if (order.farmer.toString() !== req.user._id.toString()) {
     throw new ApiError(403, 'You are not authorized to accept this order')
   }
@@ -257,9 +301,11 @@ const acceptOrder = asyncHandler(async (req, res) => {
   order.status = 'accepted'
   await order.save()
 
+  const farmer = await User.findById(req.user._id).select('name')
+
   await notifyOrderAccepted(
-    order.buyer,
-    order.farmer.name,
+    order.buyer._id,
+    farmer.name,
     order.orderDetails.quantity,
     order.orderDetails.cropName,
     order._id
@@ -660,6 +706,7 @@ export {
   getIncomingOrders,
   getOrderById,
   updateOrderStatus,
+  cancelOrder,
   acceptOrder,
   declineOrder,
   schedulePickup,

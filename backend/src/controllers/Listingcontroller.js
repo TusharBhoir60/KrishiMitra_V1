@@ -260,7 +260,12 @@ const updateListing = asyncHandler(async (req, res) => {
 
   if (cropName    !== undefined) listing.cropName    = cropName
   if (category    !== undefined) listing.category    = category
-  if (quantity    !== undefined) { listing.quantity = Number(quantity); listing.availableQty = Number(quantity) }
+  // Item 6: recalculate availableQty when quantity changes
+  if (quantity    !== undefined) {
+    const soldQty = listing.quantity - listing.availableQty
+    listing.quantity = Number(quantity)
+    listing.availableQty = Number(quantity) - soldQty
+  }
   if (minOrderQty !== undefined) listing.minOrderQty = Number(minOrderQty)
   if (pricePerKg  !== undefined) listing.pricePerKg  = Number(pricePerKg)
   if (harvestDate !== undefined) listing.harvestDate = harvestDate

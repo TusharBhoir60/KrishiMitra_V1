@@ -4,8 +4,10 @@ import {
   getIncomingOrders,
   getOrderById,
   updateOrderStatus,
+  cancelOrder,
   placeOrder,
   getMyOrders,
+  acceptOrder,
   schedulePickup,
   verifyOTPAndPickup,
   dispatchOrder,
@@ -24,12 +26,11 @@ const router = Router()
 // BUYER ROUTES
 router.post('/', verifyToken, roleCheck('buyer'), placeOrder)
 router.get('/my', verifyToken, roleCheck('buyer'), getMyOrders)
+router.patch('/:id/cancel', verifyToken, roleCheck('buyer'), cancelOrder)
 
 // FARMER ROUTES (fixed paths before /:id)
 router.get('/incoming', verifyToken, roleCheck('farmer'), getIncomingOrders)
-
-// SHARED: get single order (buyer / farmer / transporter)
-router.get('/:id', verifyToken, getOrderById)
+router.post('/:id/accept', verifyToken, roleCheck('farmer'), acceptOrder)
 router.patch('/:id/status', verifyToken, roleCheck('farmer'), updateOrderStatus)
 router.patch('/:id/schedule-pickup', verifyToken, roleCheck('farmer'), schedulePickup)
 router.patch('/:id/dispatch', verifyToken, roleCheck('farmer'), dispatchOrder)
@@ -48,5 +49,8 @@ router.post(
   handleMulterError,
   raiseDispute
 )
+
+// SHARED: get single order (buyer / farmer / transporter) — keep last to avoid swallowing named paths
+router.get('/:id', verifyToken, getOrderById)
 
 export default router
