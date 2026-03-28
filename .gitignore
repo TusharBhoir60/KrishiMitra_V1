@@ -1,0 +1,9 @@
+frontend/node_modules/
+frontend/frontend/node_modules/
+frontend/.git/
+frontend/frontend/.git/
+frontend/.git-inner-backup/
+frontend/frontend/.git-inner-backup/
+frontend/frontend/dist/
+frontend/frontend/build_output.log
+frontend/frontend/build_output_utf8.log
