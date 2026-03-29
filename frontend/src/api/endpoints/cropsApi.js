@@ -16,11 +16,34 @@ const toListingsQuery = (params) => {
 
 export const cropsApi = {
   getListings: async (params) => {
-    const res = await api.get('/listings', { params: toListingsQuery(params || {}) });
-    const list = res.data.data || [];
-    const pagination = { total: list.length, pages: 1, limit: 50, page: 1 };
-    return { data: { data: list, pagination } };
-  },
+  const res = await api.get('/listings', { params: toListingsQuery(params || {}) });
+  const raw = res.data.data || [];
+
+  const list = raw.map((listing) => {
+    const normalized = { ...listing };
+
+    // normalize nested quality fields for Marketplace cards
+    if (normalized.quality) {
+      if (normalized.grade === undefined) normalized.grade = normalized.quality.grade;
+      if (normalized.perishability === undefined) normalized.perishability = normalized.quality.perishability;
+    }
+
+    // normalize delivery options if backend uses `delivery`
+    if (normalized.delivery && !normalized.deliveryOptions) {
+      normalized.deliveryOptions = {
+        farmerDelivers: normalized.delivery.farmerDelivers,
+        buyerPickup: normalized.delivery.buyerPickup,
+        platformTransporter: normalized.delivery.platformTransporter,
+        deliveryCharge: normalized.delivery.additionalDeliveryCharge,
+      };
+    }
+
+    return normalized;
+  });
+
+  const pagination = { total: list.length, pages: 1, limit: 50, page: 1 };
+  return { data: { data: list, pagination } };
+},
   getListingById: async (id) => {
     const res = await api.get(`/listings/${id}`);
     const listing = res.data.data || {};
