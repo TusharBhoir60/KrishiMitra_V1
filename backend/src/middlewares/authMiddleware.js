@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import { ApiError } from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
-export const verifyToken = asyncHandler(async (req, res, next) => {
+export const verifyToken = asyncHandler(async (req, res, forward) => {
 
     const bearerToken = req.headers?.authorization?.startsWith("Bearer ")
         ? req.headers.authorization.split(" ")[1]
@@ -21,20 +21,33 @@ export const verifyToken = asyncHandler(async (req, res, next) => {
             role: decodedToken?.role
         };
 
-        next();
+        return req.user;
+
     } catch (error) {
         throw new ApiError(401, error?.message || "Invalid access token");
     }
 });
 
-export const authorizeRoles = (...roles) => (req, res, next) => {
+export const authorizeRoles = (...roles) => (req, res, forward) => {
     if (!req.user?.role) {
-        return next(new ApiError(401, "Unauthorized"));
+        if (typeof forward === 'function') {
+            return forward(new ApiError(401, "Unauthorized"));
+        }
+
+        throw new ApiError(401, "Unauthorized");
     }
 
     if (!roles.includes(req.user.role)) {
-        return next(new ApiError(403, "Forbidden: Insufficient permissions"));
+        if (typeof forward === 'function') {
+            return forward(new ApiError(403, "Forbidden: Insufficient permissions"));
+        }
+
+        throw new ApiError(403, "Forbidden: Insufficient permissions");
     }
 
-    return next();
+    if (typeof forward === 'function') {
+        return forward();
+    }
+
+    return undefined;
 };
