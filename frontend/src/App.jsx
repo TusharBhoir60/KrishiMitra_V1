@@ -28,12 +28,14 @@ import { CropDetail } from './pages/buyer/CropDetail';
 import { OrderConfirm } from './pages/buyer/OrderConfirm';
 import { BuyerOrders } from './pages/buyer/BuyerOrders';
 import { BuyerOrderDetail } from './pages/buyer/BuyerOrderDetail';
+import { BuyerProfile } from './pages/buyer/BuyerProfile';
 
 // Transporter Pages
 import { TransporterDashboard } from './pages/transporter/TransporterDashboard';
 import { AvailableJobs } from './pages/transporter/AvailableJobs';
 import { ActiveJob } from './pages/transporter/ActiveJob';
 import { TripHistory } from './pages/transporter/TripHistory';
+import { TransporterProfile } from './pages/transporter/TransporterProfile';
 
 // Admin Pages
 import { AdminDashboard } from './pages/admin/AdminDashboard';
@@ -83,7 +85,7 @@ function App() {
                   <Route path="crops/:id/order" element={<OrderConfirm />} />
                   <Route path="orders" element={<BuyerOrders />} />
                   <Route path="orders/:id" element={<BuyerOrderDetail />} />
-                  <Route path="profile" element={<FarmerProfile />} />
+                  <Route path="profile" element={<BuyerProfile />} />
                   <Route path="*" element={<Navigate to="marketplace" replace />} />
                 </Routes>
               </RoleRoute>
@@ -101,7 +103,7 @@ function App() {
                   <Route path="jobs" element={<AvailableJobs />} />
                   <Route path="jobs/:id" element={<ActiveJob />} />
                   <Route path="history" element={<TripHistory />} />
-                  <Route path="profile" element={<FarmerProfile />} />
+                  <Route path="profile" element={<TransporterProfile />} />
                   <Route path="*" element={<Navigate to="dashboard" replace />} />
                 </Routes>
               </RoleRoute>

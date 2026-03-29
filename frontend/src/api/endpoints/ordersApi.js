@@ -10,6 +10,13 @@ export const ordersApi = {
       agreedDate: payload.preferredDate || payload.agreedDate,
       buyerNote: payload.specialInstructions || payload.buyerNote,
     };
+
+    Object.keys(body).forEach((key) => {
+      if (body[key] === undefined || body[key] === null || body[key] === '') {
+        delete body[key];
+      }
+    });
+
     const res = await api.post('/orders', body);
     const order = res.data.data?.order || res.data.data;
     return { data: { data: order } };

@@ -89,6 +89,28 @@ export const Checkout = () => {
 
   const grandTotal = cartTotal + totalTransport;
 
+  const getDeliveryAvailability = (item) => {
+    const options = item.deliveryOptions || {};
+    const delivery = item.delivery || {};
+
+    return {
+      farmer_delivers: Boolean(options.farmerDelivers ?? delivery.farmerDelivers),
+      buyer_pickup: Boolean(options.buyerPickup ?? delivery.buyerPickup),
+      platform_transporter: Boolean(options.platformTransporter ?? delivery.platformTransporter),
+    };
+  };
+
+  const resolveMethodForItem = (item, preferredMethod) => {
+    const availability = getDeliveryAvailability(item);
+    if (availability[preferredMethod]) return preferredMethod;
+
+    const fallback = ['farmer_delivers', 'buyer_pickup', 'platform_transporter'].find(
+      (method) => availability[method]
+    );
+
+    return fallback || null;
+  };
+
   // FIX: handlePlaceOrder now calls ordersApi.createOrder for each cart item
   // instead of the localStorage-only placeOrder from OrderContext
   const handlePlaceOrder = async () => {
@@ -108,22 +130,38 @@ export const Checkout = () => {
 
     setIsPlacing(true);
     const failed = [];
+    const methodAdjusted = [];
 
     try {
       for (const item of cartItems) {
         try {
+          const itemDeliveryMethod = resolveMethodForItem(item, deliveryMethod);
+
+          if (!itemDeliveryMethod) {
+            failed.push(item.cropName);
+            continue;
+          }
+
+          if (itemDeliveryMethod !== deliveryMethod) {
+            methodAdjusted.push(item.cropName);
+          }
+
           await ordersApi.createOrder({
             cropListingId: item._id,
             quantity: item.quantity,
-            deliveryMethod,
-            buyerAddress: address,
+            deliveryMethod: itemDeliveryMethod,
+            buyerAddress: itemDeliveryMethod === 'buyer_pickup' ? undefined : address,
             buyerNote: instructions,
-            agreedDate: null,
+            agreedDate: undefined,
           });
         } catch (err) {
           // collect failures so we can report them without stopping other items
           failed.push(item.cropName);
         }
+      }
+
+      if (methodAdjusted.length > 0) {
+        toast('Some items used a different available delivery method.', { icon: 'ℹ️' });
       }
 
       if (failed.length === 0) {

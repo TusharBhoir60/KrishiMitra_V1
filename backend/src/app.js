@@ -16,12 +16,31 @@ const app = express()
 //cors config -> allows frontend to run on different port/domain 
 const allowedOrigins = (process.env.CORS_ORIGIN
     ? process.env.CORS_ORIGIN.split(",").map((origin) => origin.trim()).filter(Boolean)
-    : ["http://localhost:5173", "http://localhost:5174"])
+    : [
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://localhost:5175",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:5174",
+        "http://127.0.0.1:5175",
+    ])
+
+const localDevOriginRegex = /^http:\/\/(localhost|127\.0\.0\.1):\d+$/
+
+const corsOriginHandler = (origin, callback) => {
+    // Allow non-browser tools (no Origin header) and explicit/dev localhost origins.
+    if (!origin || allowedOrigins.includes(origin) || localDevOriginRegex.test(origin)) {
+        return callback(null, true)
+    }
+
+    return callback(new Error(`CORS blocked for origin: ${origin}`))
+}
 
 app.use(
     cors({
-        origin: allowedOrigins,
+        origin: corsOriginHandler,
         credentials: true,
+        optionsSuccessStatus: 204,
     })
 )
 

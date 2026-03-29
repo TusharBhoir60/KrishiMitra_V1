@@ -1,36 +1,7 @@
 import React, { useRef, Suspense, useMemo } from 'react';
 import { Canvas, useFrame, useLoader } from '@react-three/fiber';
-import { Html, Stars } from '@react-three/drei';
 import { TextureLoader, BackSide } from 'three';
 import { useLanguage } from '../../context/LanguageContext';
-
-const OrbitDots = () => {
-  const orbitRef = useRef();
-  const points = useMemo(() => {
-    return Array.from({ length: 22 }).map((_, i) => {
-      const angle = (i / 22) * Math.PI * 2;
-      const radius = 2.65;
-      return [Math.cos(angle) * radius, Math.sin(angle * 1.2) * 0.28, Math.sin(angle) * radius];
-    });
-  }, []);
-
-  useFrame(() => {
-    if (!orbitRef.current) return;
-    orbitRef.current.rotation.y += 0.004;
-    orbitRef.current.rotation.x = Math.sin(Date.now() * 0.0003) * 0.15;
-  });
-
-  return (
-    <group ref={orbitRef}>
-      {points.map((p, idx) => (
-        <mesh key={idx} position={p}>
-          <sphereGeometry args={[0.032, 12, 12]} />
-          <meshBasicMaterial color="#FACC15" toneMapped={false} />
-        </mesh>
-      ))}
-    </group>
-  );
-};
 
 const EarthMesh = () => {
   const earthRef = useRef();
@@ -64,19 +35,6 @@ const EarthMesh = () => {
     }
   });
 
-  const cities = [
-    { name: 'Mumbai', lat: 19.076, lng: 72.877 },
-    { name: 'Pune', lat: 18.520, lng: 73.856 },
-    { name: 'Delhi', lat: 28.613, lng: 77.209 },
-    { name: 'Bengaluru', lat: 12.972, lng: 77.594 },
-    { name: 'Hyderabad', lat: 17.385, lng: 78.487 },
-    { name: 'Kolkata', lat: 22.572, lng: 88.363 },
-    { name: 'Chennai', lat: 13.083, lng: 80.270 },
-    { name: 'Ahmedabad', lat: 23.022, lng: 72.571 }
-  ];
-
-  const r = 2.05;
-
   return (
     <group>
       <mesh scale={1.06}>
@@ -98,26 +56,7 @@ const EarthMesh = () => {
           emissive="#244b3a"
           emissiveIntensity={0.22}
         />
-        
-        {cities.map((city, idx) => {
-          const phi = (90 - city.lat) * (Math.PI / 180);
-          const theta = (city.lng + 180) * (Math.PI / 180);
-          const x = -(r * Math.sin(phi) * Math.cos(theta));
-          const y = r * Math.cos(phi);
-          const z = -(r * Math.sin(phi) * Math.sin(theta));
-
-          return (
-            <Html key={idx} position={[x, y, z]} distanceFactor={8}>
-              <div className="relative flex justify-center items-center">
-                <div className="absolute w-5 h-5 bg-yellow-300/45 rounded-full animate-ping"></div>
-                <div className="w-2.5 h-2.5 bg-yellow-300 rounded-full shadow-[0_0_10px_#FACC15]"></div>
-              </div>
-            </Html>
-          );
-        })}
       </mesh>
-
-      <OrbitDots />
     </group>
   );
 };
@@ -133,7 +72,6 @@ export default function GlobeCanvas() {
           <directionalLight position={[5, 3, 5]} intensity={2.25} color="#fff7d6" />
           <pointLight position={[-10, -5, -10]} intensity={0.6} color="#1e40af" />
           <pointLight position={[0, 4, 6]} intensity={1.0} color="#ffffff" />
-          <Stars radius={100} depth={50} count={1500} factor={4} fade speed={0.3} />
           <EarthMesh />
         </Canvas>
       </Suspense>
