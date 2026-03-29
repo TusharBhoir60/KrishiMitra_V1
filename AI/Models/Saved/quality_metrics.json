@@ -1,0 +1,7 @@
+{
+  "grade_accuracy_pct": 0,
+  "freshness_accuracy_pct": 0,
+  "n_train": 480,
+  "n_test": 120,
+  "model_version": "1.0.0-mobilenetv2"
+}

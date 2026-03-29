@@ -9,6 +9,7 @@ import transporterRoutes from "./routes/transporterRoutes.js"
 import deliveryRoutes from "./routes/deliveryRoutes.js"
 import adminRoutes from "./routes/adminRoutes.js"
 import aiRoutes from "./routes/aiRoutes.js"
+import mlRoutes from "./routes/ml.routes.js"
 import { errorHandler } from "./middlewares/errorHandler.js"
 
 const app = express() 
@@ -41,6 +42,7 @@ app.use("/api/transporters", transporterRoutes)
 app.use("/api/delivery", deliveryRoutes)
 app.use("/api/admin", adminRoutes)
 app.use("/api/ai", aiRoutes)
+app.use("/api/ml", mlRoutes)
 
 app.get('/api/health', (req, res) => {
     res.status(200).json({ success: true, message: 'KrishiBazaar API running' })
