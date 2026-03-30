@@ -2,10 +2,27 @@ import api from '../axiosConfig';
 
 export const authApi = {
   register: async (data) => {
-    const { fullName, district, state = 'Maharashtra', confirmPassword, ...rest } = data;
+    const {
+      fullName,
+      district,
+      state = 'Maharashtra',
+      confirmPassword,
+      companyName,
+      serviceAreas,
+      maxLoadCapacity,
+      ...rest
+    } = data;
+
+    const normalizedZones = typeof serviceAreas === 'string'
+      ? serviceAreas.split(',').map((area) => area.trim()).filter(Boolean)
+      : [];
+
     await api.post('/auth/register', {
       ...rest,
       name: fullName,
+      businessName: companyName,
+      zones: normalizedZones,
+      capacityKg: maxLoadCapacity ? Number(maxLoadCapacity) : undefined,
       location: { district, state },
     });
 

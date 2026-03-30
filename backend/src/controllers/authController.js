@@ -74,7 +74,7 @@ export const login = asyncHandler(async (req, res) => {
 
   const user = await User.findOne({ email })
   if (!user) {
-    throw new ApiError(404, "User not found")
+    throw new ApiError(401, "Invalid credentials")
   }
 
   const isMatch = await user.comparePassword(password)

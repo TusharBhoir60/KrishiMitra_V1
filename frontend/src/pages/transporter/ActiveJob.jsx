@@ -4,7 +4,7 @@ import { deliveryApi } from '../../api/endpoints/deliveryApi';
 import { useAuth } from '../../hooks/useAuth';
 import { formatINR } from '../../utils/formatCurrency';
 import { SkeletonCard } from '../../components/common/SkeletonCard';
-import { MapPin, Truck, CheckCircle, Navigation, Phone, ShieldCheck, Play, KeyRound } from 'lucide-react';
+import { MapPin, Truck, CheckCircle, Navigation, Phone, ShieldCheck, Play, KeyRound, Package } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const ActiveJob = () => {

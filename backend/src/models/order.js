@@ -105,7 +105,7 @@ const orderSchema = new Schema(
   }
 )
 
-orderSchema.pre('save', function (next) {
+orderSchema.pre('save', function () {
   if (this.isNew) {
     const deadline = new Date()
     deadline.setHours(deadline.getHours() + 12)
@@ -113,7 +113,6 @@ orderSchema.pre('save', function (next) {
     this.payment.mockTransactionId = 'MOCK-' + Date.now()
     this.payment.status = 'held'
   }
-  next()
 })
 
 orderSchema.index({ farmer: 1 })
