@@ -60,6 +60,7 @@ app.use("/api/transporters", transporterRoutes)
 app.use("/api/delivery", deliveryRoutes)
 app.use("/api/admin", adminRoutes)
 app.use("/api/ai", aiRoutes)
+app.use("/api/ml", aiRoutes)
 
 app.get('/api/health', (req, res) => {
     res.status(200).json({ success: true, message: 'KrishiBazaar API running' })

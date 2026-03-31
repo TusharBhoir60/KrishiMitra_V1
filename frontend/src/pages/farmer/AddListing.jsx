@@ -8,6 +8,7 @@ import { cropsApi } from '../../api/endpoints/cropsApi';
 import { aiApi } from '../../api/endpoints/aiApi';
 import { districtList } from '../../utils/districtList';
 import { PricePredictionCard } from '../../components/ui/PricePredictionCard';
+import ListingInsightsPanel from '../../components/ai/ListingInsightsPanel';
 import toast from 'react-hot-toast';
 import { Upload, X, Loader2, ArrowLeft } from 'lucide-react';
 
@@ -205,6 +206,14 @@ export const AddListing = () => {
               </div>
             </div>
           </div>
+
+          <ListingInsightsPanel
+            cropName={cropName}
+            state={user?.location?.state || 'Maharashtra'}
+            district={district}
+            quantity={watch('quantity')}
+            soilType={user?.soilType || user?.profile?.soilType}
+          />
 
           {/* Section 2: Quality */}
           <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
