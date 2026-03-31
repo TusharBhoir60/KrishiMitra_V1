@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 
 export const CropCard = ({ crop, index }) => {
   const getGradient = (name) => {
@@ -22,7 +22,7 @@ export const CropCard = ({ crop, index }) => {
   };
 
   return (
-    <motion.div
+    <Motion.div
       initial={{ opacity: 0, y: 60, scale: 0.95 }}
       whileInView={{ opacity: 1, y: 0, scale: 1 }}
       viewport={{ once: true, margin: '-50px' }}
@@ -32,11 +32,11 @@ export const CropCard = ({ crop, index }) => {
       className="relative overflow-hidden rounded-2xl bg-white shadow-sm border border-gray-100 cursor-pointer shimmer-card flex flex-col h-full"
     >
       <div className={`h-48 bg-gradient-to-br ${getGradient(crop.name)} relative overflow-hidden flex items-center justify-center group shrink-0`}>
-        <motion.div 
+        <Motion.div 
           className="text-7xl transform translate-y-[10px] transition-transform duration-500 group-hover:scale-125"
         >
           {getEmoji(crop.name)}
-        </motion.div>
+        </Motion.div>
         
         {crop.organic && (
           <div className="absolute top-4 right-4 bg-white/90 rounded-full px-3 py-1 text-farm-green text-xs font-body font-semibold shadow-sm">
@@ -74,6 +74,6 @@ export const CropCard = ({ crop, index }) => {
           </button>
         </div>
       </div>
-    </motion.div>
+    </Motion.div>
   );
 };

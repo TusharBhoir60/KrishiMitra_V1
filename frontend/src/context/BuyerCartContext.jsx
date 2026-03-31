@@ -139,6 +139,7 @@ export const BuyerCartProvider = ({ children }) => {
   return <BuyerCartContext.Provider value={value}>{children}</BuyerCartContext.Provider>;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useBuyerCart = () => {
   const context = useContext(BuyerCartContext);
 

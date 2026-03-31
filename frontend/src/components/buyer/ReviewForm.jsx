@@ -117,6 +117,8 @@ export default function ReviewForm({ farmerId, orderId, onSuccess }) {
   );
 }
 
+export { ReviewForm };
+
 // ─── Inline styles (swap for Tailwind/CSS modules if your project uses them) ──
 const styles = {
   card: {

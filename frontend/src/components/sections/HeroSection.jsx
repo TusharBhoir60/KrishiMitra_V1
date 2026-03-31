@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import React from 'react';
 import { useLanguage } from '../../context/LanguageContext';
@@ -13,7 +13,7 @@ export const HeroSection = () => {
     <section className="max-w-7xl mx-auto px-8 py-20 grid md:grid-cols-2 gap-12 items-center min-h-[calc(100vh-80px)]">
       {/* Left Column - Text */}
       <div className="flex flex-col items-start justify-center z-10 w-full max-w-xl">
-        <motion.div 
+        <Motion.div 
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
@@ -21,52 +21,52 @@ export const HeroSection = () => {
         >
           <div className="w-2 h-2 rounded-full bg-farm-green animate-pulse"></div>
           <span className="text-sm font-body text-farm-green">{t('hero.badge')}</span>
-        </motion.div>
+        </Motion.div>
 
-        <motion.span 
+        <Motion.span 
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
           className="font-body font-semibold text-lg text-farm-mid mb-2 block"
         >
           {t('hero.line1')}
-        </motion.span>
+        </Motion.span>
 
         <h1 className="text-5xl font-bold leading-tight text-farm-dark mb-2">
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: 'spring', stiffness: 100, delay: 0.15 * 1 }}
           >
             {t('hero.line2')}
-          </motion.div>
-          <motion.div
+          </Motion.div>
+          <Motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: 'spring', stiffness: 100, delay: 0.15 * 2 }}
           >
             {t('hero.line3')}
-          </motion.div>
-          <motion.div
+          </Motion.div>
+          <Motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: 'spring', stiffness: 100, delay: 0.15 * 3 }}
           >
             {t('hero.line4')}
-          </motion.div>
+          </Motion.div>
         </h1>
 
-        <motion.p 
+        <Motion.p 
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.7 }}
           className="text-lg text-gray-600 mt-4 max-w-[520px] leading-relaxed"
         >
           {t('hero.sub')}
-        </motion.p>
+        </Motion.p>
 
         <div className="flex gap-4 mt-6 flex-wrap">
-          <motion.div 
+          <Motion.div 
             whileHover={{ scale: 1.04 }} 
             whileTap={{ scale: 0.97 }}
             className="flex flex-col"
@@ -78,9 +78,9 @@ export const HeroSection = () => {
               {t('hero.farmerBtn')}
             </button>
             <span className="text-[13px] font-body text-farm-mid mt-2">{t('hero.farmerSub')}</span>
-          </motion.div>
+          </Motion.div>
 
-          <motion.div 
+          <Motion.div 
             whileHover={{ scale: 1.04 }} 
             whileTap={{ scale: 0.97 }}
             className="flex flex-col"
@@ -92,7 +92,7 @@ export const HeroSection = () => {
               {t('hero.buyerBtn')}
             </button>
             <span className="text-[13px] font-body text-gray-500 mt-2">{t('hero.buyerSub')}</span>
-          </motion.div>
+            </Motion.div>
         </div>
       </div>
 

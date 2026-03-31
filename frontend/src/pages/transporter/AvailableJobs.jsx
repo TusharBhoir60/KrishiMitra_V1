@@ -20,14 +20,14 @@ export const AvailableJobs = () => {
       setLoading(true);
       const res = await deliveryApi.getAvailableJobs();
       setJobs(res.data?.data || []);
-    } catch (err) {
+    } catch {
       toast.error('Failed to load available jobs');
     } finally {
       setLoading(false);
     }
   };
 
-  const calculateDistanceEstimate = (job) => {
+  const calculateDistanceEstimate = () => {
     // Mock distance for the UI. In real app, Google Maps Matrix API.
     return `${Math.floor(Math.random() * 40) + 10} km`;
   };

@@ -1,8 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
 import { ordersApi } from '../../api/endpoints/ordersApi';
-import { useAuth } from '../../hooks/useAuth';
 import { StatusProgress } from '../../components/ui/StatusProgress';
 import { CostBreakdown } from '../../components/ui/CostBreakdown';
 import { CountdownTimer } from '../../components/ui/CountdownTimer';
@@ -16,30 +14,29 @@ import toast from 'react-hot-toast';
 export const FarmerOrderDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [pickupDate, setPickupDate] = useState('');
   const [pickupSlot, setPickupSlot] = useState('');
   const [declineReason, setDeclineReason] = useState('');
 
-  const fetchOrder = async () => {
+  const fetchOrder = useCallback(async () => {
     try {
       const res = await ordersApi.getOrderById(id);
       setOrder(res.data?.data);
-    } catch (e) {
+    } catch {
       toast.error('Order not found');
       navigate('/farmer/orders');
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, navigate]);
 
   useEffect(() => {
     fetchOrder();
     const interval = setInterval(fetchOrder, 30000);
     return () => clearInterval(interval);
-  }, [id]);
+  }, [fetchOrder]);
 
   const handleAction = async (actionStr) => {
     try {
@@ -69,7 +66,7 @@ export const FarmerOrderDetail = () => {
 
   if (loading || !order) return <div className="p-6 grid gap-6 max-w-4xl mx-auto"><SkeletonCard/><SkeletonCard/></div>;
 
-  const nextAction = getNextAction(order, 'farmer');
+  const _nextAction = getNextAction(order, 'farmer');
 
   // FIX: read from order.delivery.method instead of order.deliveryMethod
   const deliveryMethod = order.delivery?.method;

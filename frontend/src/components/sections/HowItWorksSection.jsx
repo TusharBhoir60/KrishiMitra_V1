@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 import { useLanguage } from '../../context/LanguageContext';
 
 export const HowItWorksSection = () => {
@@ -17,7 +17,7 @@ export const HowItWorksSection = () => {
         {/* Farmer Timeline */}
         <div className="relative">
           <div className="absolute left-[23px] top-0 bottom-0 w-1 bg-farm-pale rounded-full" />
-          <motion.div 
+          <Motion.div 
             className="absolute left-[23px] top-0 w-1 bg-farm-green rounded-full origin-top"
             style={{ height: farmerHeight }}
           />
@@ -26,7 +26,7 @@ export const HowItWorksSection = () => {
           
           <div className="space-y-12 z-10 relative">
             {hw.farmerSteps.map((step, index) => (
-              <motion.div 
+              <Motion.div 
                 key={index}
                 initial={{ opacity: 0, x: -50 }}
                 whileInView={{ opacity: 1, x: 0 }}
@@ -39,7 +39,7 @@ export const HowItWorksSection = () => {
                 </div>
                 <h4 className="font-display text-2xl font-bold text-farm-dark mb-2">{step.title}</h4>
                 <p className="font-body text-gray-600 text-lg">{step.desc}</p>
-              </motion.div>
+              </Motion.div>
             ))}
           </div>
         </div>
@@ -47,7 +47,7 @@ export const HowItWorksSection = () => {
         {/* Buyer Timeline */}
         <div className="relative mt-16 lg:mt-0">
           <div className="absolute left-[23px] top-0 bottom-0 w-1 bg-farm-gold/20 rounded-full" />
-          <motion.div 
+          <Motion.div 
             className="absolute left-[23px] top-0 w-1 bg-farm-gold rounded-full origin-top"
             style={{ height: buyerHeight }}
           />
@@ -56,7 +56,7 @@ export const HowItWorksSection = () => {
           
           <div className="space-y-12 z-10 relative">
             {hw.buyerSteps.map((step, index) => (
-              <motion.div 
+              <Motion.div 
                 key={index}
                 initial={{ opacity: 0, x: 50 }}
                 whileInView={{ opacity: 1, x: 0 }}
@@ -69,7 +69,7 @@ export const HowItWorksSection = () => {
                 </div>
                 <h4 className="font-display text-2xl font-bold text-farm-dark mb-2">{step.title}</h4>
                 <p className="font-body text-gray-600 text-lg">{step.desc}</p>
-              </motion.div>
+              </Motion.div>
             ))}
           </div>
         </div>

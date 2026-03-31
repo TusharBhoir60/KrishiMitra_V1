@@ -1,6 +1,13 @@
 import { useRef, useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '../../context/LanguageContext';
+
+const PLANT_Y_POSITIONS = Array.from({ length: 30 }, () => 400 + Math.random() * 80);
+const CONFETTI_RANDOMS = Array.from({ length: 25 }, () => ({
+  scale: Math.random() + 0.5,
+  nx: Math.random() - 0.5,
+  ny: Math.random() - 0.5,
+}));
 
 export const ScrollFarmScene = () => {
   const { t } = useLanguage();
@@ -36,6 +43,14 @@ export const ScrollFarmScene = () => {
 
   const sceneIndex = getActiveScene();
 
+  const width = typeof window !== 'undefined' ? window.innerWidth : 1280;
+  const height = typeof window !== 'undefined' ? window.innerHeight : 720;
+  const confettiParticles = CONFETTI_RANDOMS.map((item) => ({
+    scale: item.scale,
+    x: item.nx * width * 0.8,
+    y: item.ny * height * 0.8 + 200,
+  }));
+
   const farmerCard = (
     <div className="absolute top-24 left-8 lg:left-16 bg-farm-dark/85 backdrop-blur-sm rounded-2xl p-6 max-w-sm z-30 shadow-2xl">
       <h3 className="font-display text-3xl text-farm-gold mb-3">{t(`scroll.scene${sceneIndex + 1}Title`)}</h3>
@@ -67,7 +82,7 @@ export const ScrollFarmScene = () => {
 
         <AnimatePresence mode="wait">
           {sceneIndex === 0 && (
-            <motion.div 
+            <Motion.div 
               key="scene1"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               transition={{ duration: 0.6 }}
@@ -93,9 +108,9 @@ export const ScrollFarmScene = () => {
                 {/* Plants */}
                 {[...Array(30)].map((_, i) => {
                   const x = 100 + (i * 40) % 1200;
-                  const y = 400 + (Math.random() * 80);
+                  const y = PLANT_Y_POSITIONS[i];
                   return (
-                    <motion.g 
+                    <Motion.g 
                       key={`p-${i}`} 
                       initial={{ scale: 0, y: 20 }} 
                       animate={{ scale: 1, y: 0 }} 
@@ -103,15 +118,15 @@ export const ScrollFarmScene = () => {
                     >
                       <line x1={x} y1={y} x2={x} y2={y-15} stroke="#52B788" strokeWidth="2"/>
                       <circle cx={x} cy={y-15} r="3" fill="#D8F3DC"/>
-                    </motion.g>
+                    </Motion.g>
                   );
                 })}
               </svg>
-            </motion.div>
+            </Motion.div>
           )}
 
           {sceneIndex === 1 && (
-            <motion.div 
+            <Motion.div 
               key="scene2"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               transition={{ duration: 0.6 }}
@@ -124,15 +139,15 @@ export const ScrollFarmScene = () => {
                 {/* Connecting Line */}
                 <div className="absolute top-1/2 left-8 right-8 h-1 bg-white/20 -translate-y-1/2 -z-10" />
                 
-                <motion.svg className="absolute top-1/2 left-8 right-8 h-12 -translate-y-1/2 -z-10 overflow-visible w-[calc(100%-4rem)]">
-                  <motion.line 
+                <Motion.svg className="absolute top-1/2 left-8 right-8 h-12 -translate-y-1/2 -z-10 overflow-visible w-[calc(100%-4rem)]">
+                  <Motion.line 
                     x1="0" y1="6" x2="100%" y2="6" 
                     stroke="white" strokeWidth="2" strokeDasharray="5,5" 
                     initial={{ strokeDashoffset: 1000 }}
                     animate={{ strokeDashoffset: 0 }}
                     transition={{ duration: 2, ease: "linear" }}
                   />
-                </motion.svg>
+                </Motion.svg>
 
                 {/* Nodess */}
                 {[
@@ -142,7 +157,7 @@ export const ScrollFarmScene = () => {
                   { id: 'm3', label: 'Retailer', price: '₹38', bg: 'bg-gray-400', text: 'text-white/80' },
                   { id: 'buyer', label: 'Consumer', price: '₹45/kg', bg: 'bg-blue-700', text: 'text-red-400' }
                 ].map((node, i) => (
-                  <motion.div 
+                  <Motion.div 
                     key={node.id}
                     initial={{ scale: 0, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
@@ -156,32 +171,32 @@ export const ScrollFarmScene = () => {
                      
                      {/* Red X for middlemen */}
                      {i > 0 && i < 4 && (
-                       <motion.div
+                       <Motion.div
                          initial={{ scale: 0, opacity: 0 }}
                          animate={{ scale: 1, opacity: 1, x: [0, -5, 5, -3, 3, 0] }}
                          transition={{ delay: 1 + i * 0.2, duration: 0.5 }}
                          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-red-500 text-5xl font-black z-20 rotate-12 drop-shadow-md"
                        >
                          ✕
-                       </motion.div>
+                       </Motion.div>
                      )}
-                  </motion.div>
+                  </Motion.div>
                 ))}
               </div>
 
-              <motion.div 
+              <Motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1.5 }}
                 className="mt-16 text-red-400 font-body font-semibold text-xl lg:text-2xl text-center bg-black/40 px-6 py-3 rounded-full"
               >
                 {t('scroll.scene2Stat')}
-              </motion.div>
-            </motion.div>
+              </Motion.div>
+            </Motion.div>
           )}
 
           {sceneIndex === 2 && (
-            <motion.div 
+            <Motion.div 
               key="scene3"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               transition={{ duration: 0.6 }}
@@ -192,17 +207,17 @@ export const ScrollFarmScene = () => {
               
               <div className="relative w-full max-w-4xl h-64 flex items-center justify-between mt-10 z-20 mx-auto px-4 lg:px-0">
                 {/* Farmer Node */}
-                <motion.div className="flex flex-col items-center">
+                <Motion.div className="flex flex-col items-center">
                   <div className="w-24 h-24 bg-farm-green rounded-full flex flex-col items-center justify-center shadow-[0_0_30px_#1B4332] z-10 border-4 border-farm-gold">
                     <span className="font-display font-bold text-xl text-white">₹22/kg</span>
                     <span className="text-[10px] text-farm-gold leading-tight text-center">+22% more</span>
                   </div>
                   <span className="mt-3 font-body font-bold text-farm-green text-lg">Farmer</span>
-                </motion.div>
+                </Motion.div>
 
                 {/* Direct Beam */}
-                <motion.svg className="absolute top-1/2 left-24 right-24 h-12 -translate-y-1/2 z-0 w-[calc(100%-12rem)]">
-                  <motion.line 
+                <Motion.svg className="absolute top-1/2 left-24 right-24 h-12 -translate-y-1/2 z-0 w-[calc(100%-12rem)]">
+                  <Motion.line 
                     x1="0" y1="24" x2="100%" y2="24" 
                     stroke="#40916C" strokeWidth="8" strokeLinecap="round"
                     style={{ filter: 'drop-shadow(0 0 8px #52B788)' }}
@@ -212,34 +227,34 @@ export const ScrollFarmScene = () => {
                   />
                   
                   {/* Sliding Coin */}
-                  <motion.circle 
+                  <Motion.circle 
                     r="12" fill="#F59E0B"
                     initial={{ cx: "0%", cy: "24" }}
                     animate={{ cx: "100%", cy: "24", y: [0, -5, 0] }}
                     transition={{ cx: { duration: 1.5, repeat: Infinity, ease: "linear" }, y: { duration: 0.8, repeat: Infinity } }}
                   />
-                  <motion.text 
+                  <Motion.text 
                      initial={{ x: "0%", y: 28 }}
-                     animate={{ x: "100%", y: 28, y: [4, -1, 4] }}
+                    animate={{ x: "100%", y: [28, 23, 28] }}
                      transition={{ x: { duration: 1.5, repeat: Infinity, ease: "linear" }, y: { duration: 0.8, repeat: Infinity } }}
                      fill="#fff" fontSize="12" fontWeight="bold" textAnchor="middle" alignmentBaseline="middle"
                   >
                     ₹
-                  </motion.text>
-                </motion.svg>
+                  </Motion.text>
+                </Motion.svg>
 
                 {/* Buyer Node */}
-                <motion.div className="flex flex-col items-center">
+                <Motion.div className="flex flex-col items-center">
                   <div className="w-24 h-24 bg-blue-600 rounded-full flex flex-col items-center justify-center shadow-[0_0_30px_#2563EB] z-10 border-4 border-white">
                     <span className="font-display font-bold text-xl text-white">₹28/kg</span>
                     <span className="text-[10px] text-blue-200 leading-tight text-center">−38% cheaper</span>
                   </div>
                   <span className="mt-3 font-body font-bold text-blue-900 text-lg">Buyer</span>
-                </motion.div>
+                </Motion.div>
               </div>
 
               {/* Phone Mockup */}
-              <motion.div 
+              <Motion.div 
                 initial={{ y: 200, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.5, type: 'spring', stiffness: 80 }}
@@ -252,12 +267,12 @@ export const ScrollFarmScene = () => {
                   <div className="text-sm text-gray-500 mt-2">Arjun Farmer • Pune</div>
                   <button className="mt-auto w-full bg-farm-green text-white py-3 rounded-xl font-body font-bold text-sm">Request Order</button>
                 </div>
-              </motion.div>
-            </motion.div>
+              </Motion.div>
+            </Motion.div>
           )}
 
           {sceneIndex === 3 && (
-            <motion.div 
+            <Motion.div 
               key="scene4"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               transition={{ duration: 0.6 }}
@@ -265,15 +280,15 @@ export const ScrollFarmScene = () => {
               style={{ background: '#0F2D1F', backgroundImage: 'radial-gradient(ellipse 60% 60% at 50% 50%, #1B4332, #0F2D1F)' }}
             >
               {/* Confetti */}
-              {typeof window !== 'undefined' && [...Array(25)].map((_, i) => (
-                <motion.div
+              {confettiParticles.map((particle, i) => (
+                <Motion.div
                   key={i}
                   initial={{ opacity: 1, scale: 0, x: 0, y: 0 }}
                   animate={{ 
                     opacity: 0, 
-                    scale: Math.random() + 0.5,
-                    x: (Math.random() - 0.5) * window.innerWidth * 0.8,
-                    y: (Math.random() - 0.5) * window.innerHeight * 0.8 + 200
+                    scale: particle.scale,
+                    x: particle.x,
+                    y: particle.y
                   }}
                   transition={{ duration: 2, delay: i * 0.02, ease: "easeOut" }}
                   className="absolute top-1/2 left-1/2 w-4 h-4 rounded-full"
@@ -287,7 +302,7 @@ export const ScrollFarmScene = () => {
 
               <div className="flex flex-col sm:flex-row gap-8 z-10">
                 {/* Farmer Card */}
-                <motion.div 
+                <Motion.div 
                   whileHover={{ scale: 1.06, y: -8 }}
                   className="bg-farm-gold rounded-3xl p-8 w-64 text-center cursor-pointer shadow-xl flex flex-col"
                   onClick={() => window.location.href = '/register?role=farmer'}
@@ -296,10 +311,10 @@ export const ScrollFarmScene = () => {
                   <h3 className="font-display text-2xl text-farm-dark font-bold mb-2">Join as Farmer</h3>
                   <p className="font-body text-farm-dark/80 text-sm mb-6 flex-1">List crops, skip middlemen, and earn what you deserve.</p>
                   <button className="bg-farm-green text-white w-full rounded-xl py-3 font-body font-bold">Start Free →</button>
-                </motion.div>
+                </Motion.div>
 
                 {/* Buyer Card */}
-                <motion.div 
+                <Motion.div 
                   whileHover={{ scale: 1.06, y: -8 }}
                   className="border-2 border-white/30 bg-white/5 backdrop-blur-md rounded-3xl p-8 w-64 text-center cursor-pointer shadow-xl flex flex-col"
                   onClick={() => window.location.href = '/register?role=buyer'}
@@ -308,17 +323,18 @@ export const ScrollFarmScene = () => {
                   <h3 className="font-display text-2xl text-white font-bold mb-2">Join as Buyer</h3>
                   <p className="font-body text-white/70 text-sm mb-6 flex-1">Source fresh produce directly from farms at lower costs.</p>
                   <button className="bg-white text-farm-green hover:bg-farm-gold hover:text-farm-dark transition-colors w-full rounded-xl py-3 font-body font-bold">Explore Market →</button>
-                </motion.div>
+                </Motion.div>
               </div>
 
               {/* Coins */}
-              <motion.div className="absolute left-1/4 bottom-1/4 w-8 h-8 rounded-full bg-farm-gold flex items-center justify-center font-bold text-farm-dark animate-coinFloat" style={{ animationDelay: '0s'}}>₹</motion.div>
-              <motion.div className="absolute right-1/4 top-1/4 w-6 h-6 rounded-full bg-farm-gold flex items-center justify-center font-bold text-[10px] text-farm-dark animate-coinFloat" style={{ animationDelay: '0.7s'}}>₹</motion.div>
-              <motion.div className="absolute right-1/3 bottom-1/3 w-10 h-10 rounded-full bg-farm-gold flex items-center justify-center font-bold text-lg text-farm-dark animate-coinFloat" style={{ animationDelay: '1.4s'}}>₹</motion.div>
-            </motion.div>
+              <Motion.div className="absolute left-1/4 bottom-1/4 w-8 h-8 rounded-full bg-farm-gold flex items-center justify-center font-bold text-farm-dark animate-coinFloat" style={{ animationDelay: '0s'}}>₹</Motion.div>
+              <Motion.div className="absolute right-1/4 top-1/4 w-6 h-6 rounded-full bg-farm-gold flex items-center justify-center font-bold text-[10px] text-farm-dark animate-coinFloat" style={{ animationDelay: '0.7s'}}>₹</Motion.div>
+              <Motion.div className="absolute right-1/3 bottom-1/3 w-10 h-10 rounded-full bg-farm-gold flex items-center justify-center font-bold text-lg text-farm-dark animate-coinFloat" style={{ animationDelay: '1.4s'}}>₹</Motion.div>
+            </Motion.div>
           )}
         </AnimatePresence>
       </div>
     </div>
   );
 };
+

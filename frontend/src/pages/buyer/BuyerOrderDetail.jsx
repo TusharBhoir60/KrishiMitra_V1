@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { ordersApi } from '../../api/endpoints/ordersApi';
@@ -7,7 +7,6 @@ import { CostBreakdown } from '../../components/ui/CostBreakdown';
 import { StatusProgress } from '../../components/ui/StatusProgress';
 import { CountdownTimer } from '../../components/ui/CountdownTimer';
 import { SkeletonCard } from '../../components/common/SkeletonCard';
-import { getNextAction } from '../../utils/orderStatusHelpers';
 import { formatDateTime } from '../../utils/formatDate';
 import { ShoppingBag, Truck, CheckCircle, Navigation, MapPin } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -22,23 +21,23 @@ export const BuyerOrderDetail = () => {
   const [showReview, setShowReview] = useState(false);
   const [hasReviewed, setHasReviewed] = useState(false); // ← ADDED
 
-  const fetchOrder = async () => {
+  const fetchOrder = useCallback(async () => {
     try {
       const res = await ordersApi.getOrderById(id);
       setOrder(res.data?.data);
-    } catch (e) {
+    } catch {
       toast.error('Order not found');
       navigate('/buyer/orders');
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, navigate]);
 
   useEffect(() => {
     fetchOrder();
     const interval = setInterval(fetchOrder, 30000);
     return () => clearInterval(interval);
-  }, [id]);
+  }, [fetchOrder]);
 
   // ← ADDED: check if buyer already reviewed this farmer
   useEffect(() => {
@@ -69,7 +68,7 @@ export const BuyerOrderDetail = () => {
       } else if (actionStr === 'confirm-received') {
         setShowReview(true);
       }
-    } catch (e) {
+    } catch {
       toast.error('Failed to update order');
     }
   };
@@ -82,7 +81,7 @@ export const BuyerOrderDetail = () => {
       setShowReview(false);
       setHasReviewed(true);
       fetchOrder();
-    } catch (err) {
+    } catch {
       toast.error('Failed to confirm receipt');
     }
   };

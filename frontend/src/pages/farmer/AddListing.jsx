@@ -45,7 +45,7 @@ export const AddListing = () => {
   const [images, setImages] = useState([]);
   const [prediction, setPrediction] = useState(null);
 
-  const { register, handleSubmit, watch, control, formState: { errors }, setValue, trigger } = useForm({
+  const { register, handleSubmit, watch, control, formState: { errors } } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
       category: 'vegetable',
@@ -74,7 +74,7 @@ export const AddListing = () => {
           } else {
             setPrediction(null);
           }
-        } catch (e) {
+        } catch {
           setPrediction(null);
         }
       }

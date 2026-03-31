@@ -24,9 +24,10 @@ export const OrderConfirm = () => {
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [estimate, setEstimate] = useState(null);
+  const buyerDistrict = user?.location?.district;
 
   useEffect(() => {
-    cropsApi.getListingById(id, user?.location?.district).then(res => {
+    cropsApi.getListingById(id, buyerDistrict).then(res => {
       setCrop(res.data?.data);
       setQty(res.data?.data?.minOrderQty || 1);
       
@@ -36,23 +37,23 @@ export const OrderConfirm = () => {
         else if (res.data.data.deliveryOptions.buyerPickup) setMethod('buyer_pickup');
         else if (res.data.data.deliveryOptions.platformTransporter) setMethod('platform_transporter');
       }
-    }).catch(e => {
+    }).catch(() => {
       toast.error('Listing not found');
       navigate('/buyer/marketplace');
     }).finally(() => setLoading(false));
-  }, [id]);
+  }, [id, navigate, buyerDistrict]);
 
   useEffect(() => {
     if (method === 'platform_transporter' && crop) {
       deliveryApi.getEstimate({
         fromDistrict: crop.farmer.location.district,
-        toDistrict: user.location.district,
+        toDistrict: buyerDistrict,
         quantity: qty,
         perishability: crop.perishability
       }).then(res => setEstimate(res.data?.data))
         .catch(() => setEstimate(null));
     }
-  }, [method, qty, crop]);
+  }, [method, qty, crop, buyerDistrict]);
 
   const handleSubmit = async () => {
     try {

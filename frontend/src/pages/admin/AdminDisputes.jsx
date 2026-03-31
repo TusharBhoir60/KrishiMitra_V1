@@ -13,7 +13,7 @@ export const AdminDisputes = () => {
       setLoading(true);
       const res = await adminApi.getDisputes();
       setDisputes(res.data?.data || []);
-    } catch (e) {
+    } catch {
       toast.error('Failed to load disputes');
     } finally {
       setLoading(false);
@@ -27,7 +27,7 @@ export const AdminDisputes = () => {
       await adminApi.resolveDispute(id, { resolutionNotes: resolution });
       toast.success('Dispute resolved');
       fetchDisputes();
-    } catch (e) {
+    } catch {
       toast.error('Failed to resolve');
     }
   };

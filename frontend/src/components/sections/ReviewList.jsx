@@ -64,6 +64,8 @@ export default function ReviewList({ farmerId }) {
   );
 }
 
+export { ReviewList };
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function ReviewCard({ review }) {

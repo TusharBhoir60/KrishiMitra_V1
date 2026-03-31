@@ -38,7 +38,7 @@ export const CropDetail = () => {
           });
           setEstimate(estRes.data?.data);
         }
-      } catch (err) {
+      } catch {
         navigate('/buyer/marketplace');
       } finally {
         setLoading(false);
