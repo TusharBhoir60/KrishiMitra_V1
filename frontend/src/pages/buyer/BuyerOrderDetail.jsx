@@ -180,7 +180,7 @@ export const BuyerOrderDetail = () => {
                 </div>
                 <div className="relative pt-2">
                   <div className="absolute -left-[23px] top-3 w-3 h-3 bg-blue-500 rounded-full ring-4 ring-blue-100 animate-pulse"></div>
-                  <p className="font-medium text-farm-dark text-blue-700">In transit to your address</p>
+                  <p className="font-medium text-blue-700">In transit to your address</p>
                   <p className="text-xs text-blue-500 font-bold mt-1">Expected delivery today</p>
                 </div>
               </div>
