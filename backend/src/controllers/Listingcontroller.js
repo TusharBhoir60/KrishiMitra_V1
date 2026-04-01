@@ -117,10 +117,11 @@ const createListing = asyncHandler(async (req, res) => {
   const originalTitle = cropName || ''
   const originalDescription = description || ''
   const detectedLanguage = detectLanguage(`${originalTitle} ${originalDescription}`)
+  const canonicalCropName = await translateText(originalTitle, 'english')
 
   const listing = await CropListing.create({
     farmer:      req.user._id,          // injected by authMiddleware
-    cropName,
+    cropName: canonicalCropName,
     title_original: originalTitle,
     category,
     quantity:    Number(quantity),
@@ -350,8 +351,10 @@ const updateListing = asyncHandler(async (req, res) => {
 
   const parseBool = (val) => val === 'true' || val === true
 
-  if (cropName    !== undefined) listing.cropName    = cropName
-  if (cropName    !== undefined) listing.title_original = cropName
+  if (cropName    !== undefined) {
+    listing.title_original = cropName
+    listing.cropName = await translateText(cropName, 'english')
+  }
   if (category    !== undefined) listing.category    = category
   // Item 6: recalculate availableQty when quantity changes
   if (quantity    !== undefined) {

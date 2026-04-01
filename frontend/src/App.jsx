@@ -20,6 +20,13 @@ import { FarmerOrders } from './pages/farmer/FarmerOrders';
 import { FarmerOrderDetail } from './pages/farmer/FarmerOrderDetail';
 import { FarmerProfile } from './pages/farmer/FarmerProfile';
 
+// AI Pages
+import { PricePredictionPage } from './pages/ai/PricePredictionPage';
+import { DemandForecastPage } from './pages/ai/DemandForecastPage';
+import { QualityAnalysisPage } from './pages/ai/QualityAnalysisPage';
+import { CropRecommendationPage } from './pages/ai/CropRecommendationPage';
+import { PriceRangePredictionPage } from './pages/ai/PriceRangePredictionPage';
+
 // Buyer Pages
 import { Marketplace } from './pages/buyer/Marketplace';
 import { BuyerCart } from './pages/buyer/BuyerCart';
@@ -66,6 +73,11 @@ function App() {
                   <Route path="orders" element={<FarmerOrders />} />
                   <Route path="orders/:id" element={<FarmerOrderDetail />} />
                   <Route path="profile" element={<FarmerProfile />} />
+                  <Route path="ai/price-prediction" element={<PricePredictionPage />} />
+                  <Route path="ai/demand-forecast" element={<DemandForecastPage />} />
+                  <Route path="ai/quality-analysis" element={<QualityAnalysisPage />} />
+                  <Route path="ai/crop-recommendation" element={<CropRecommendationPage />} />
+                  <Route path="ai/price-range-prediction" element={<PriceRangePredictionPage />} />
                   <Route path="*" element={<Navigate to="dashboard" replace />} />
                 </Routes>
               </RoleRoute>

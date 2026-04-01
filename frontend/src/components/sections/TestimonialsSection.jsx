@@ -1,10 +1,10 @@
-import { motion as Motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Star } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
 export const TestimonialsSection = () => {
   const { t } = useLanguage();
-  const testData = t('testimonials');
+  const testData = t('testimonials', { returnObjects: true }) || {};
   
   if (!testData || !testData.items) return null;
 
@@ -16,7 +16,7 @@ export const TestimonialsSection = () => {
 
         <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
           {testData.items.map((item, index) => (
-            <Motion.div
+            <motion.div
               key={index}
               initial={{ rotateY: 15, opacity: 0 }}
               whileInView={{ rotateY: 0, opacity: 1 }}
@@ -48,7 +48,7 @@ export const TestimonialsSection = () => {
                   />
                 ))}
               </div>
-            </Motion.div>
+            </motion.div>
           ))}
         </div>
       </div>

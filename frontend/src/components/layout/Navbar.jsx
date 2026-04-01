@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
-import { AnimatePresence, motion as Motion } from 'framer-motion';
-import { useTranslation } from 'react-i18next';
+import { AnimatePresence, motion } from 'framer-motion';
 import { LanguageSwitcher } from '../ui/LanguageSwitcher';
+import { useLanguage } from '../../context/LanguageContext';
 
 export const Navbar = () => {
-  const { t } = useTranslation();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navTextClass = scrolled ? 'text-farm-green' : 'text-white';
+  const navHoverClass = scrolled ? 'hover:text-farm-gold' : 'hover:text-farm-gold';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -22,7 +24,7 @@ export const Navbar = () => {
   return (
     <nav 
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ease-in-out ${
-        scrolled ? 'bg-white/95 shadow-md backdrop-blur-sm' : 'bg-transparent'
+        scrolled ? 'bg-white/95 shadow-md backdrop-blur-sm' : 'bg-black/25 backdrop-blur-sm shadow-sm'
       }`}
     >
       <div className="flex justify-between items-center px-8 py-4 max-w-7xl mx-auto w-full">
@@ -32,23 +34,23 @@ export const Navbar = () => {
               <path d="M12 2C8.686 2 6 4.686 6 8C6 11.314 12 22 12 22C12 22 18 11.314 18 8C18 4.686 15.314 2 12 2Z" />
             </svg>
           </div>
-          <span className="font-display text-[22px] font-bold text-farm-green group-hover:scale-[1.02] origin-left transition-transform">
+          <span className={`font-display text-[22px] font-bold ${navTextClass} group-hover:scale-[1.02] origin-left transition-transform`}>
             KrishiMitra
           </span>
         </Link>
 
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-8">
-          <Link to="/marketplace" className="font-body font-medium text-farm-green relative after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0 after:bg-farm-gold after:transition-all hover:after:w-full hover:text-farm-gold">
+          <Link to="/marketplace" className={`font-body font-medium ${navTextClass} ${navHoverClass} relative after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0 after:bg-farm-gold after:transition-all hover:after:w-full`}>
             {t('nav.marketplace')}
           </Link>
-          <a href="#how-it-works" className="font-body font-medium text-farm-green relative after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0 after:bg-farm-gold after:transition-all hover:after:w-full hover:text-farm-gold">
+          <a href="#how-it-works" className={`font-body font-medium ${navTextClass} ${navHoverClass} relative after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0 after:bg-farm-gold after:transition-all hover:after:w-full`}>
             {t('nav.howItWorks')}
           </a>
-          <a href="#farmers" className="font-body font-medium text-farm-green relative after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0 after:bg-farm-gold after:transition-all hover:after:w-full hover:text-farm-gold">
+          <a href="#farmers" className={`font-body font-medium ${navTextClass} ${navHoverClass} relative after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0 after:bg-farm-gold after:transition-all hover:after:w-full`}>
             {t('nav.forFarmers')}
           </a>
-          <a href="#buyers" className="font-body font-medium text-farm-green relative after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0 after:bg-farm-gold after:transition-all hover:after:w-full hover:text-farm-gold">
+          <a href="#buyers" className={`font-body font-medium ${navTextClass} ${navHoverClass} relative after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0 after:bg-farm-gold after:transition-all hover:after:w-full`}>
             {t('nav.forBuyers')}
           </a>
         </div>
@@ -57,7 +59,11 @@ export const Navbar = () => {
           <LanguageSwitcher />
           <button 
             onClick={() => navigate('/login')}
-            className="border-[1.5px] border-farm-green text-farm-green rounded-lg px-5 py-2 font-body font-medium hover:bg-farm-green hover:text-white transition-colors"
+            className={`border-[1.5px] rounded-lg px-5 py-2 font-body font-medium transition-colors ${
+              scrolled
+                ? 'border-farm-green text-farm-green hover:bg-farm-green hover:text-white'
+                : 'border-white text-white hover:bg-white hover:text-farm-dark'
+            }`}
           >
             {t('nav.login')}
           </button>
@@ -72,7 +78,7 @@ export const Navbar = () => {
 
         {/* Mobile Toggle */}
         <button 
-          className="md:hidden text-farm-green p-2"
+          className={`md:hidden p-2 ${navTextClass}`}
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         >
           {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -82,7 +88,7 @@ export const Navbar = () => {
       {/* Mobile Drawer */}
       <AnimatePresence>
         {mobileMenuOpen && (
-          <Motion.div
+          <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
@@ -109,7 +115,7 @@ export const Navbar = () => {
                 {t('nav.getStarted')}
               </button>
             </div>
-          </Motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </nav>
