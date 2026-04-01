@@ -3,11 +3,16 @@ import { useLanguage } from '../../context/LanguageContext';
 import { LanguageSwitcher } from '../ui/LanguageSwitcher';
 
 export const Footer = () => {
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
   const f = t('footer', { returnObjects: true }) || {};
   const columnHeadings = Array.isArray(f.columnHeadings) ? f.columnHeadings : [];
   const farmersLinks = Array.isArray(f.linkArrays?.farmers) ? f.linkArrays.farmers : [];
   const buyersLinks = Array.isArray(f.linkArrays?.buyers) ? f.linkArrays.buyers : [];
+  const designedForLabel = currentLanguage === 'hi'
+    ? 'भारतीय किसानों के लिए डिज़ाइन किया गया 🇮🇳'
+    : currentLanguage === 'mr'
+      ? 'भारतीय शेतकऱ्यांसाठी डिझाइन केलेले 🇮🇳'
+      : 'Designed for Indian farmers 🇮🇳';
 
   return (
     <footer className="bg-farm-dark pt-20 pb-8 px-6 lg:px-16 relative">
@@ -83,7 +88,7 @@ export const Footer = () => {
 
       <div className="max-w-7xl mx-auto border-t border-white/10 mt-16 pt-8 flex flex-col md:flex-row justify-between items-center text-sm relative z-10 gap-4">
         <span className="font-body text-white/40">{f.copyright || ''}</span>
-        <span className="font-body text-white/30">Designed for Indian farmers 🇮🇳</span>
+        <span className="font-body text-white/30">{designedForLabel}</span>
       </div>
     </footer>
   );
