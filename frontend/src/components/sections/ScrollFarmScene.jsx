@@ -6,6 +6,7 @@ export const ScrollFarmScene = () => {
   const { t } = useLanguage();
   const sectionRef = useRef(null);
   const [progress, setProgress] = useState(0);
+  const NAVBAR_OFFSET = 80;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -37,7 +38,7 @@ export const ScrollFarmScene = () => {
   const sceneIndex = getActiveScene();
 
   const farmerCard = (
-    <div className="absolute top-24 left-8 lg:left-16 bg-farm-dark/85 backdrop-blur-sm rounded-2xl p-6 max-w-sm z-30 shadow-2xl">
+    <div className="absolute top-8 left-8 lg:left-16 bg-farm-dark/85 backdrop-blur-sm rounded-2xl p-6 max-w-sm z-30 shadow-2xl">
       <h3 className="font-display text-3xl text-farm-gold mb-3">{t(`scroll.scene${sceneIndex + 1}Title`)}</h3>
       <p className="font-body text-white/80 leading-relaxed text-lg">{t(`scroll.scene${sceneIndex + 1}Body`)}</p>
     </div>
@@ -45,21 +46,24 @@ export const ScrollFarmScene = () => {
 
   return (
     <div ref={sectionRef} style={{ height: '500vh', position: 'relative' }}>
-      <div className="sticky top-0 h-screen overflow-hidden w-full">
+      <div
+        className="sticky overflow-hidden w-full"
+        style={{ top: `${NAVBAR_OFFSET}px`, height: `calc(100vh - ${NAVBAR_OFFSET}px)` }}
+      >
         {/* Progress Bar */}
-        <div 
-          className="absolute top-0 left-0 h-1 z-50 transition-all duration-100"
-          style={{ 
+        <div
+          className="absolute top-0 left-0 h-1 z-30 transition-all duration-100"
+          style={{
             width: `${progress * 100}%`,
-            background: 'linear-gradient(90deg, #1B4332, #F59E0B)' 
+            background: 'linear-gradient(90deg, #1B4332, #F59E0B)'
           }}
         />
 
         {/* Scene Dots */}
-        <div className="absolute top-1/2 left-4 -translate-y-1/2 flex flex-col gap-3 z-50">
+        <div className="absolute top-1/2 left-4 -translate-y-1/2 flex flex-col gap-3 z-30">
           {[0, 1, 2, 3].map(i => (
-            <div 
-              key={i} 
+            <div
+              key={i}
               className={`transition-all duration-300 rounded-full ${i === sceneIndex ? 'w-2 h-8 bg-farm-gold' : 'w-2 h-2 bg-white/40'}`}
             />
           ))}
