@@ -12,6 +12,11 @@ const cropListingSchema = new Schema(
       required: [true, 'Crop name is required'],
       trim: true,
     },
+    title_original: {
+      type: String,
+      trim: true,
+      default: '',
+    },
     category: {
       type: String,
       enum: ['vegetable', 'grain', 'fruit', 'spice', 'dairy', 'other'],
@@ -91,6 +96,16 @@ const cropListingSchema = new Schema(
       type: String,
       trim: true,
       default: '',
+    },
+    description_original: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    language: {
+      type: String,
+      enum: ['english', 'hindi', 'marathi'],
+      default: 'english',
     },
     delivery: {
       farmerDelivers: {

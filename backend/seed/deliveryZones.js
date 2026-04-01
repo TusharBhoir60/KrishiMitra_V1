@@ -45,4 +45,3 @@ await DeliveryZone.insertMany([
 ]);
 console.log('Delivery zones seeded');
 await mongoose.disconnect();
-

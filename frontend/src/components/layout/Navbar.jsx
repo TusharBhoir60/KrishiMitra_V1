@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { AnimatePresence, motion as Motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { LanguageSwitcher } from '../ui/LanguageSwitcher';
-import { useLanguage } from '../../context/LanguageContext';
 
 export const Navbar = () => {
-  const { t } = useLanguage();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
