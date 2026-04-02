@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { Review } from '../models/review.js';
 import { Order } from '../models/order.js'; 
 
@@ -15,8 +16,8 @@ const createReview = async (req, res) => {
     // 1. Verify a real completed order exists between this buyer and farmer
     const completedOrder = await Order.findOne({
       _id: orderId,
-      buyerId,
-      farmerId,
+      buyer: buyerId,
+      farmer: farmerId,
       status: 'completed',
     });
 
@@ -58,7 +59,7 @@ const getReviewsByFarmer = async (req, res) => {
 
     // Aggregation for fresh avgRating and totalReviews
     const [stats] = await Review.aggregate([
-      { $match: { farmerId: new (require('mongoose').Types.ObjectId)(farmerId) } },
+      { $match: { farmerId: new mongoose.Types.ObjectId(farmerId) } },
       {
         $group: {
           _id: '$farmerId',

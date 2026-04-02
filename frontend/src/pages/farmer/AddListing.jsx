@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { cropsApi } from '../../api/endpoints/cropsApi';
 import { aiApi } from '../../api/endpoints/aiApi';
 import { districtList } from '../../utils/districtList';
 import { PricePredictionCard } from '../../components/ui/PricePredictionCard';
+import ListingInsightsPanel from '../../components/ai/ListingInsightsPanel';
 import toast from 'react-hot-toast';
 import { Upload, X, Loader2, ArrowLeft } from 'lucide-react';
 
@@ -21,7 +22,7 @@ const schema = yup.object().shape({
       return value <= this.parent.quantity;
     }).required('Minimum order is required'),
   pricePerKg: yup.number().typeError('Must be a number').positive().required('Price is required'),
-  grade: yup.string().oneOf(['A', 'B', 'C']).required('Grade is required'),
+  grade: yup.string().oneOf(['A', 'B', 'C']).optional(),
   perishability: yup.string().oneOf(['high', 'medium', 'low']).required('Perishability is required'),
   description: yup.string(),
   district: yup.string().required('District is required'),
@@ -42,14 +43,17 @@ export const AddListing = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
-  const [images, setImages] = useState([]);
+  const [primaryImage, setPrimaryImage] = useState(null);
+  const [qualityAnalysis, setQualityAnalysis] = useState(null);
+  const [qualityLoading, setQualityLoading] = useState(false);
+  const [qualityError, setQualityError] = useState('');
   const [prediction, setPrediction] = useState(null);
 
-  const { register, handleSubmit, watch, control, formState: { errors } } = useForm({
+  const { register, handleSubmit, watch, control, formState: { errors }, setValue, trigger } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
       category: 'vegetable',
-      grade: 'A',
+      grade: '',
       perishability: 'medium',
       district: user?.location?.district || '',
       buyerPickup: true,
@@ -63,6 +67,12 @@ export const AddListing = () => {
   const district = watch('district');
   const price = watch('pricePerKg');
   const farmerDelivers = watch('farmerDelivers');
+
+  useEffect(() => {
+    if (qualityAnalysis?.grade) {
+      setValue('grade', qualityAnalysis.grade, { shouldValidate: true, shouldDirty: true });
+    }
+  }, [qualityAnalysis, setValue]);
 
   useEffect(() => {
     const fetchPrediction = async () => {
@@ -83,21 +93,63 @@ export const AddListing = () => {
     return () => clearTimeout(timer);
   }, [cropName, district]);
 
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-    if (images.length + files.length > 3) {
-      toast.error('Maximum 3 images allowed');
-      return;
+  const analyzePrimaryImage = async (file, cropLabel) => {
+    if (!file) return;
+
+    setQualityLoading(true);
+    setQualityError('');
+
+    try {
+      const response = await aiApi.analyzeQuality(file, cropLabel || watch('cropName'));
+      if (response.data?.grade) {
+        setQualityAnalysis(response.data);
+        setValue('grade', response.data.grade, { shouldValidate: true, shouldDirty: true });
+      } else {
+        setQualityAnalysis(null);
+        setQualityError('Quality analysis did not return a grade. Please try another image.');
+      }
+    } catch (error) {
+      setQualityAnalysis(null);
+      const message = error.response?.data?.message || 'Failed to analyze crop image';
+      setQualityError(message);
+      toast.error(message);
+    } finally {
+      setQualityLoading(false);
     }
-    setImages(prev => [...prev, ...files]);
   };
 
-  const removeImage = (index) => {
-    setImages(images.filter((_, i) => i !== index));
+  const handlePrimaryImageChange = async (e) => {
+    const files = Array.from(e.target.files);
+    const selectedFile = files[0];
+
+    if (!selectedFile) {
+      return;
+    }
+
+    setPrimaryImage(selectedFile);
+    await analyzePrimaryImage(selectedFile, watch('cropName'));
+  };
+
+  const removePrimaryImage = async () => {
+    setQualityAnalysis(null);
+    setQualityError('');
+
+    setPrimaryImage(null);
+    setValue('grade', '', { shouldValidate: true, shouldDirty: true });
   };
 
   const onSubmit = async (data) => {
     try {
+      if (!primaryImage) {
+        toast.error('Please upload a crop image for AI quality analysis');
+        return;
+      }
+
+      if (!qualityAnalysis?.grade) {
+        toast.error('Quality analysis is required before publishing');
+        return;
+      }
+
       setSubmitting(true);
       const formData = new FormData();
 
@@ -106,7 +158,7 @@ export const AddListing = () => {
       formData.append('quantity', data.quantity);
       formData.append('minOrderQty', data.minOrderQty);
       formData.append('pricePerKg', data.pricePerKg);
-      formData.append('grade', data.grade);
+      formData.append('grade', qualityAnalysis.grade);
       formData.append('perishability', data.perishability);
       formData.append('harvestDate', data.harvestDate);
       formData.append('description', data.description || '');
@@ -120,9 +172,7 @@ export const AddListing = () => {
       formData.append('priceIncludesDelivery', data.farmerDelivers && !data.deliveryCharge ? 'true' : 'false');
       formData.append('additionalDeliveryCharge', String(data.deliveryCharge || 0));
 
-      images.forEach((img) => {
-        formData.append('images', img?.file || img);
-      });
+      formData.append('images', primaryImage);
 
       await cropsApi.createListing(formData);
       toast.success('Listing published successfully!');
@@ -206,30 +256,96 @@ export const AddListing = () => {
             </div>
           </div>
 
+          <ListingInsightsPanel
+            cropName={cropName}
+            state={user?.location?.state || 'Maharashtra'}
+            district={district}
+            quantity={watch('quantity')}
+            soilType={user?.soilType || user?.profile?.soilType}
+          />
+
           {/* Section 2: Quality */}
           <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-6">Quality & Condition</h2>
             
             <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-farm-dark mb-3">Crop Grade</label>
-                <Controller name="grade" control={control} render={({ field }) => (
-                  <div className="flex gap-3">
-                    {['A', 'B', 'C'].map(g => (
-                      <button key={g} type="button" onClick={() => field.onChange(g)}
-                        className={`flex-1 py-3 rounded-xl border font-bold transition-all ${
-                          field.value === g 
-                          ? g === 'A' ? 'bg-green-100 border-green-500 text-green-800 ring-2 ring-green-500/20' 
-                            : g === 'B' ? 'bg-blue-100 border-blue-500 text-blue-800 ring-2 ring-blue-500/20'
-                            : 'bg-amber-100 border-amber-500 text-amber-800 ring-2 ring-amber-500/20'
-                          : 'border-gray-200 text-gray-500 hover:bg-gray-50'
-                        }`}
-                      >
-                        Grade {g}
-                      </button>
-                    ))}
+              <div className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-lime-50 p-5 shadow-[0_10px_30px_rgba(16,185,129,0.08)]">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600">Automatic crop grading</p>
+                    <h3 className="mt-2 text-lg font-bold text-farm-dark">Use one image for grade, cover, and buyer preview</h3>
+                    <p className="text-sm text-gray-600 mt-1 max-w-2xl">Upload the primary crop image once. The AI grade is selected automatically, the farmer cannot override it, and the same image becomes the listing cover on buyer screens.</p>
                   </div>
-                )}/>
+                  {qualityAnalysis?.grade && (
+                    <div className={`inline-flex items-center rounded-full px-4 py-2 text-sm font-bold shadow-sm ${qualityAnalysis.grade === 'A' ? 'bg-green-100 text-green-800' : qualityAnalysis.grade === 'B' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'}`}>
+                      Grade {qualityAnalysis.grade}
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-5 grid gap-5 lg:grid-cols-[240px,1fr]">
+                  <div className="relative overflow-hidden rounded-3xl border border-dashed border-emerald-200 bg-white p-4">
+                    <input type="file" accept=".jpg,.jpeg,.png,.webp" onChange={handlePrimaryImageChange} className="absolute inset-0 h-full w-full cursor-pointer opacity-0" />
+                    {primaryImage ? (
+                      <div className="relative">
+                        <img src={URL.createObjectURL(primaryImage)} alt="Primary crop" className="h-48 w-full rounded-xl object-cover" />
+                        <button type="button" onClick={removePrimaryImage} className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full bg-red-500 text-white shadow-md hover:bg-red-600">
+                          <X className="h-4 w-4" />
+                        </button>
+                        <div className="absolute bottom-3 left-3 rounded-full bg-black/65 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
+                          Cover image for buyers
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex h-48 flex-col items-center justify-center rounded-2xl border border-emerald-50 bg-emerald-50/40 text-center">
+                        <Upload className="mb-3 h-10 w-10 text-emerald-500" />
+                        <p className="font-medium text-farm-dark">Upload crop cover photo</p>
+                        <p className="mt-1 text-xs text-gray-500">JPEG, PNG or WebP, up to 5MB</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-4">
+                    {qualityLoading && (
+                      <div className="rounded-2xl border border-emerald-100 bg-white p-4 text-sm text-emerald-700">
+                        Analyzing crop image... please wait.
+                      </div>
+                    )}
+
+                    {qualityError && (
+                      <div className="rounded-2xl border border-red-100 bg-red-50 p-4 text-sm text-red-700">
+                        {qualityError}
+                      </div>
+                    )}
+
+                    {qualityAnalysis?.grade && (
+                      <div className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400">Auto-selected grade</p>
+                            <p className="mt-1 text-3xl font-bold text-farm-dark">Grade {qualityAnalysis.grade}</p>
+                          </div>
+                          <div className="rounded-full bg-green-50 px-4 py-1.5 text-sm font-semibold text-green-700">
+                            Confidence {Math.round((qualityAnalysis.grade_confidence || 0) * 100)}%
+                          </div>
+                        </div>
+                        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                          <div className="rounded-2xl bg-emerald-50 p-3">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Freshness</p>
+                            <p className="mt-1 text-sm font-semibold text-emerald-900">{qualityAnalysis.freshness}</p>
+                          </div>
+                          <div className="rounded-2xl bg-lime-50 p-3">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-lime-700">Marketability</p>
+                            <p className="mt-1 text-sm font-semibold text-lime-900">{qualityAnalysis.marketability}</p>
+                          </div>
+                        </div>
+                        <p className="mt-4 text-sm text-gray-600">
+                          The grade is locked from the AI result and visible to buyers alongside the same cover image.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
               <div>
@@ -262,34 +378,7 @@ export const AddListing = () => {
             </div>
           </div>
 
-          {/* Section 3: Photos */}
-          <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-6">Photos</h2>
-            
-            <p className="text-sm text-gray-600 mb-4 bg-gray-50 p-3 rounded-lg border border-gray-100 inline-block">📷 Photos taken within 48 hours build buyer trust.</p>
-            
-            <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:bg-gray-50 transition-colors relative cursor-pointer">
-              <input type="file" multiple accept=".jpg,.jpeg,.png,.webp" onChange={handleImageChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-              <Upload className="w-8 h-8 text-farm-light mx-auto mb-3" />
-              <p className="text-farm-dark font-medium">Click or drag images here</p>
-              <p className="text-sm text-gray-400 mt-1">Maximum 3 photos (up to 5MB each)</p>
-            </div>
-
-            {images.length > 0 && (
-              <div className="flex gap-4 mt-6 overflow-x-auto pb-2">
-                {images.map((file, i) => (
-                  <div key={i} className="relative w-24 h-24 shrink-0 rounded-lg overflow-hidden border border-gray-200 shadow-sm">
-                    <img src={URL.createObjectURL(file)} alt="preview" className="w-full h-full object-cover" />
-                    <button type="button" onClick={() => removeImage(i)} className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-md">
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Section 4: Delivery */}
+          {/* Section 3: Delivery */}
           <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-6">Delivery Options</h2>
             {errors.farmerDelivers && <p className="text-red-500 text-sm mb-4 bg-red-50 p-3 rounded-lg">{errors.farmerDelivers.message}</p>}
@@ -332,7 +421,7 @@ export const AddListing = () => {
             </div>
           </div>
 
-          {/* Section 5: Location */}
+          {/* Section 4: Location */}
           <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-6">Farm Location</h2>
             

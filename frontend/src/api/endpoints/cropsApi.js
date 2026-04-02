@@ -1,5 +1,35 @@
 import api from '../axiosConfig';
 
+const normalizeListing = (listing) => {
+  if (!listing || typeof listing !== 'object') return listing;
+
+  if (listing.delivery && !listing.deliveryOptions) {
+    listing.deliveryOptions = {
+      farmerDelivers: listing.delivery.farmerDelivers,
+      buyerPickup: listing.delivery.buyerPickup,
+      platformTransporter: listing.delivery.platformTransporter,
+      deliveryCharge: listing.delivery.additionalDeliveryCharge,
+    };
+  }
+
+  if (listing.quality) {
+    if (listing.perishability === undefined) {
+      listing.perishability = listing.quality.perishability;
+    }
+    if (listing.grade === undefined) {
+      listing.grade = listing.quality.grade;
+    }
+  }
+
+  if (Array.isArray(listing.images)) {
+    listing.images = listing.images
+      .filter(Boolean)
+      .map((image) => (typeof image === 'string' ? { url: image } : image));
+  }
+
+  return listing;
+};
+
 const toListingsQuery = (params) => {
   const q = {};
   if (params?.search) q.crop = params.search;
@@ -17,25 +47,13 @@ const toListingsQuery = (params) => {
 export const cropsApi = {
   getListings: async (params) => {
     const res = await api.get('/listings', { params: toListingsQuery(params || {}) });
-    const list = res.data.data || [];
+    const list = (res.data.data || []).map(normalizeListing);
     const pagination = { total: list.length, pages: 1, limit: 50, page: 1 };
     return { data: { data: list, pagination } };
   },
   getListingById: async (id) => {
     const res = await api.get(`/listings/${id}`);
-    const listing = res.data.data || {};
-    if (listing.delivery && !listing.deliveryOptions) {
-      listing.deliveryOptions = {
-        farmerDelivers: listing.delivery.farmerDelivers,
-        buyerPickup: listing.delivery.buyerPickup,
-        platformTransporter: listing.delivery.platformTransporter,
-        deliveryCharge: listing.delivery.additionalDeliveryCharge,
-      };
-    }
-    if (listing.quality && (listing.perishability === undefined || listing.grade === undefined)) {
-      listing.perishability = listing.quality.perishability;
-      listing.grade = listing.quality.grade;
-    }
+    const listing = normalizeListing(res.data.data || {});
     return { data: { data: listing } };
   },
   createListing: async (formData) => {
@@ -56,6 +74,6 @@ export const cropsApi = {
   },
   getMyListings: async () => {
     const res = await api.get('/listings/my');
-    return { data: { data: res.data.data || [] } };
+    return { data: { data: (res.data.data || []).map(normalizeListing) } };
   },
 };

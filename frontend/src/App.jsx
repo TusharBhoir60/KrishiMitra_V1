@@ -32,6 +32,7 @@ import { Marketplace } from './pages/buyer/Marketplace';
 import { BuyerCart } from './pages/buyer/BuyerCart';
 import { Checkout } from './pages/buyer/Checkout';
 import { CropDetail } from './pages/buyer/CropDetail';
+import { FarmerReviewsPage } from './pages/buyer/FarmerReviewsPage';
 import { OrderConfirm } from './pages/buyer/OrderConfirm';
 import { BuyerOrders } from './pages/buyer/BuyerOrders';
 import { BuyerOrderDetail } from './pages/buyer/BuyerOrderDetail';
@@ -94,6 +95,7 @@ function App() {
                   <Route path="cart" element={<BuyerCart />} />
                   <Route path="checkout" element={<Checkout />} />
                   <Route path="crops/:id" element={<CropDetail />} />
+                  <Route path="farmers/:farmerId/reviews" element={<FarmerReviewsPage />} />
                   <Route path="crops/:id/order" element={<OrderConfirm />} />
                   <Route path="orders" element={<BuyerOrders />} />
                   <Route path="orders/:id" element={<BuyerOrderDetail />} />

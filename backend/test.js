@@ -99,7 +99,7 @@ async function runTests() {
       '/api/auth/register',
       registerData
     );
-    userId = registerResponse.data?.user?._id;
+    userId = registerResponse.data?.data?.user?._id || registerResponse.data?.user?._id;
 
     // Login User
     const loginData = {
@@ -117,7 +117,8 @@ async function runTests() {
     refreshToken = loginResponse.data?.refreshToken;
 
     // Get Current User
-    await testEndpoint('Get Current User', 'GET', '/api/auth/me');
+    const currentUserResponse = await testEndpoint('Get Current User', 'GET', '/api/auth/me');
+    userId = currentUserResponse?.data?.data?._id || userId;
 
     // Update Profile
     const updateData = {
@@ -161,7 +162,7 @@ async function runTests() {
         listingData,
         { 'Content-Type': 'multipart/form-data' }
       );
-      listingId = createListingResponse.data?._id;
+      listingId = createListingResponse.data?.data?._id || createListingResponse.data?._id;
 
       // Get My Listings
       if (userId) {
@@ -236,7 +237,7 @@ async function runTests() {
         buyerLoginData
       );
 
-      const buyerAccessToken = buyerLoginResponse.data?.accessToken;
+      const buyerAccessToken = buyerLoginResponse.data?.data?.accessToken || buyerLoginResponse.data?.accessToken;
       accessToken = buyerAccessToken; // Switch to buyer token
 
       await testEndpoint('Get My Orders', 'GET', '/api/orders/my');
@@ -292,7 +293,16 @@ async function runTests() {
     // Get Reviews by Farmer
     if (userId) {
       try {
-        await testEndpoint('Get Reviews by Farmer', 'GET', `/api/reviews/farmer/${userId}`);
+        const reviewResponse = await testEndpoint('Get Reviews by Farmer', 'GET', `/api/reviews/farmer/${userId}`);
+        const reviewData = reviewResponse?.data || reviewResponse;
+        const reviewCount = reviewData?.reviews?.length || 0;
+        const avgRating = typeof reviewData?.avgRating === 'number' ? reviewData.avgRating : 0;
+
+        console.log(
+          chalk.green(
+            `  Review endpoint OK: ${reviewCount} review(s), average rating ${avgRating.toFixed(1)}`
+          )
+        );
       } catch (error) {
         console.log(chalk.yellow('  (Could not fetch reviews for farmer)'));
       }
