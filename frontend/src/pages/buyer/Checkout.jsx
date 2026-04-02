@@ -154,7 +154,7 @@ export const Checkout = () => {
             buyerNote: instructions,
             agreedDate: undefined,
           });
-        } catch (err) {
+        } catch {
           // collect failures so we can report them without stopping other items
           failed.push(item.cropName);
         }

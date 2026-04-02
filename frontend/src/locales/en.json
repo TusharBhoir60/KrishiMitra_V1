@@ -1,0 +1,11 @@
+{
+  "buy_now": "Buy Now",
+  "cart": "Cart",
+  "profile": "Profile",
+  "home": "Home",
+  "marketplace": "Marketplace",
+  "transporter": {
+    "jobs": "Jobs",
+    "history": "History"
+  }
+}

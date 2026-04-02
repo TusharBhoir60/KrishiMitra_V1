@@ -4,7 +4,10 @@ import { LanguageSwitcher } from '../ui/LanguageSwitcher';
 
 export const Footer = () => {
   const { t } = useLanguage();
-  const f = t('footer');
+  const f = t('footer', { returnObjects: true }) || {};
+  const columnHeadings = Array.isArray(f.columnHeadings) ? f.columnHeadings : [];
+  const farmersLinks = Array.isArray(f.linkArrays?.farmers) ? f.linkArrays.farmers : [];
+  const buyersLinks = Array.isArray(f.linkArrays?.buyers) ? f.linkArrays.buyers : [];
 
   return (
     <footer className="bg-farm-dark pt-20 pb-8 px-6 lg:px-16 relative">
@@ -40,9 +43,9 @@ export const Footer = () => {
 
         {/* Farmers Column */}
         <div>
-          <h4 className="font-display text-lg text-white mb-6">{f.columnHeadings[1]}</h4>
+          <h4 className="font-display text-lg text-white mb-6">{columnHeadings[1] || ''}</h4>
           <ul className="space-y-4">
-            {f.linkArrays?.farmers?.map((link, i) => (
+            {farmersLinks.map((link, i) => (
               <li key={i}>
                 <a href="#" className="font-body text-white/60 text-sm hover:text-farm-gold transition-colors relative inline-block group">
                   {link}
@@ -55,9 +58,9 @@ export const Footer = () => {
 
         {/* Buyers Column */}
         <div>
-          <h4 className="font-display text-lg text-white mb-6">{f.columnHeadings[2]}</h4>
+          <h4 className="font-display text-lg text-white mb-6">{columnHeadings[2] || ''}</h4>
           <ul className="space-y-4">
-            {f.linkArrays?.buyers?.map((link, i) => (
+            {buyersLinks.map((link, i) => (
               <li key={i}>
                 <a href="#" className="font-body text-white/60 text-sm hover:text-farm-gold transition-colors relative inline-block group">
                   {link}
@@ -70,7 +73,7 @@ export const Footer = () => {
 
         {/* Language Column */}
         <div>
-          <h4 className="font-display text-lg text-white mb-6">{f.columnHeadings[3]}</h4>
+          <h4 className="font-display text-lg text-white mb-6">{columnHeadings[3] || ''}</h4>
           <div className="bg-white/5 rounded-xl p-4 border border-white/10">
             <LanguageSwitcher />
           </div>
@@ -79,7 +82,7 @@ export const Footer = () => {
       </div>
 
       <div className="max-w-7xl mx-auto border-t border-white/10 mt-16 pt-8 flex flex-col md:flex-row justify-between items-center text-sm relative z-10 gap-4">
-        <span className="font-body text-white/40">{f.copyright}</span>
+        <span className="font-body text-white/40">{f.copyright || ''}</span>
         <span className="font-body text-white/30">Designed for Indian farmers 🇮🇳</span>
       </div>
     </footer>

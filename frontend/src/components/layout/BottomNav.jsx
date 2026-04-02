@@ -1,12 +1,12 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Home, List, ShoppingCart, User, Map, Clock, Search } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
 import { useNotifications } from '../../hooks/useNotifications';
-import { useLanguage } from '../../context/LanguageContext';
 
 export const BottomNav = () => {
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t } = useTranslation();
   const { unreadCount } = useNotifications();
   const location = useLocation();
 
@@ -30,10 +30,10 @@ export const BottomNav = () => {
         ];
       case 'transporter':
         return [
-          { name: 'Home', path: '/transporter/dashboard', icon: Home },
-          { name: 'Jobs', path: '/transporter/jobs', icon: Map },
-          { name: 'History', path: '/transporter/history', icon: Clock },
-          { name: 'Profile', path: '/transporter/profile', icon: User },
+          { name: t('home'), path: '/transporter/dashboard', icon: Home },
+          { name: t('transporter.jobs'), path: '/transporter/jobs', icon: Map },
+          { name: t('transporter.history'), path: '/transporter/history', icon: Clock },
+          { name: t('profile'), path: '/transporter/profile', icon: User },
         ];
       default:
         return [];

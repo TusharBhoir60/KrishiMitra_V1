@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom'; // FIX: added useParams
+import { useState, useEffect, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { ordersApi } from '../../api/endpoints/ordersApi';
 import { Badge } from '../../components/ui/Badge';
@@ -7,42 +7,60 @@ import { CostBreakdown } from '../../components/ui/CostBreakdown';
 import { StatusProgress } from '../../components/ui/StatusProgress';
 import { CountdownTimer } from '../../components/ui/CountdownTimer';
 import { SkeletonCard } from '../../components/common/SkeletonCard';
-import { getNextAction } from '../../utils/orderStatusHelpers';
 import { formatDateTime } from '../../utils/formatDate';
 import { ShoppingBag, Truck, CheckCircle, Navigation, MapPin } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { ReviewForm } from '../../components/buyer/ReviewForm'; // ← ADDED
 
 export const BuyerOrderDetail = () => {
-  const { id } = useParams(); // FIX: now imported above
+  const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showReview, setShowReview] = useState(false);
+  const [hasReviewed, setHasReviewed] = useState(false); // ← ADDED
 
-  const fetchOrder = async () => {
+  const fetchOrder = useCallback(async () => {
     try {
       const res = await ordersApi.getOrderById(id);
       setOrder(res.data?.data);
-    } catch (e) {
+    } catch {
       toast.error('Order not found');
       navigate('/buyer/orders');
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, navigate]);
 
   useEffect(() => {
     fetchOrder();
     const interval = setInterval(fetchOrder, 30000);
     return () => clearInterval(interval);
-  }, [id]);
+  }, [fetchOrder]);
+
+  // ← ADDED: check if buyer already reviewed this farmer
+  useEffect(() => {
+    const checkReview = async () => {
+      if (!order?.farmer?._id) return;
+      try {
+        const res = await fetch(`/api/reviews/farmer/${order.farmer._id}`);
+        const data = await res.json();
+        // reviews are public but don't expose buyerId — we match by buyer name as best-effort.
+        // Backend always enforces the duplicate rule on submit regardless.
+        const already = data.reviews?.some((r) => r.buyer?.name === user?.name);
+        setHasReviewed(already);
+      } catch {
+        // fail open
+      }
+    };
+    checkReview();
+  }, [order?.farmer?._id, user?.name]);
 
   const handleAction = async (actionStr) => {
     try {
       if (actionStr === 'cancel') {
         if (window.confirm('Cancel this pending order?')) {
-          // FIX: use dedicated buyer cancel endpoint instead of farmer-only declineOrder
           await ordersApi.cancelOrder(id);
           toast.success('Order cancelled');
           fetchOrder();
@@ -50,26 +68,26 @@ export const BuyerOrderDetail = () => {
       } else if (actionStr === 'confirm-received') {
         setShowReview(true);
       }
-    } catch (e) {
+    } catch {
       toast.error('Failed to update order');
     }
   };
 
-  const submitReview = async (e) => {
-    e.preventDefault();
+  // Called by ReviewForm after review is submitted, then completes the order
+  const handleReviewSuccess = async () => {
     try {
-      await ordersApi.confirmReceived(id, { rating: 5, review: e.target.review.value });
+      await ordersApi.confirmReceived(id);
       toast.success('Order completed and payment released!');
       setShowReview(false);
+      setHasReviewed(true);
       fetchOrder();
-    } catch (err) {
+    } catch {
       toast.error('Failed to confirm receipt');
     }
   };
 
   if (loading || !order) return <div className="p-6 grid gap-6 max-w-4xl mx-auto"><SkeletonCard /></div>;
 
-  // FIX: use order.delivery.method throughout instead of order.deliveryMethod
   const deliveryMethod = order.delivery?.method;
 
   return (
@@ -94,11 +112,10 @@ export const BuyerOrderDetail = () => {
 
         {/* Status Tracker */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-          {/* FIX: pass delivery.method not deliveryMethod */}
           <StatusProgress currentStatus={order.status} deliveryMethod={deliveryMethod} />
         </div>
 
-        {/* Action center depending on status */}
+        {/* Action center */}
         <div className="bg-white rounded-2xl shadow-sm border-2 border-blue-500/20 overflow-hidden relative">
           <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
           
@@ -110,7 +127,6 @@ export const BuyerOrderDetail = () => {
             </div>
           )}
 
-          {/* FIX: use deliveryMethod variable (order.delivery.method) for all conditional checks */}
           {order.status === 'accepted' && deliveryMethod === 'farmer_delivers' && (
             <div className="p-6">
               <h3 className="font-bold text-lg mb-2 text-farm-dark">Farmer is preparing delivery</h3>
@@ -163,13 +179,14 @@ export const BuyerOrderDetail = () => {
                 </div>
                 <div className="relative pt-2">
                   <div className="absolute -left-[23px] top-3 w-3 h-3 bg-blue-500 rounded-full ring-4 ring-blue-100 animate-pulse"></div>
-                  <p className="font-medium text-farm-dark text-blue-700">In transit to your address</p>
+                  <p className="font-medium text-blue-700">In transit to your address</p>
                   <p className="text-xs text-blue-500 font-bold mt-1">Expected delivery today</p>
                 </div>
               </div>
             </div>
           )}
 
+          {/* ↓ CHANGED: replaced old inline form with ReviewForm component */}
           {order.status === 'delivered' && !showReview && (
             <div className="p-6 bg-green-50">
               <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4 border-2 border-green-500"><CheckCircle className="w-8 h-8"/></div>
@@ -190,17 +207,23 @@ export const BuyerOrderDetail = () => {
             </div>
           )}
 
+          {/* ↓ CHANGED: ReviewForm replaces the old inline star/textarea form */}
           {showReview && (
             <div className="p-6 bg-green-50">
-              <h3 className="font-bold text-xl mb-4 text-green-900">Rate your experience</h3>
-              <form onSubmit={submitReview}>
-                <div className="bg-white p-4 rounded-xl border border-green-200 mb-4">
-                  <p className="font-bold mb-2">Rate Farmer ({order.farmer?.name})</p>
-                  <div className="flex gap-2 text-3xl text-amber-400 mb-2 cursor-pointer">★★★★★</div>
-                  <textarea name="review" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg outline-none text-sm" placeholder="Write a review..."></textarea>
-                </div>
-                <button type="submit" className="w-full py-3 bg-green-600 text-white font-bold rounded-xl">Submit Review & Finish</button>
-              </form>
+              <h3 className="font-bold text-xl mb-1 text-green-900">Rate your experience</h3>
+              <p className="text-sm text-green-700 mb-4">Your review will be submitted along with payment release.</p>
+              <ReviewForm
+                farmerId={order.farmer?._id}
+                orderId={order._id}
+                onSuccess={handleReviewSuccess}
+              />
+              {/* Skip review option */}
+              <button
+                onClick={handleReviewSuccess}
+                className="mt-3 w-full text-xs text-gray-400 hover:text-gray-600 underline"
+              >
+                Skip and just confirm receipt
+              </button>
             </div>
           )}
 
@@ -213,6 +236,23 @@ export const BuyerOrderDetail = () => {
                   <p className="text-green-700 text-sm">Thank you for purchasing on KrishiMitra.</p>
                 </div>
               </div>
+
+              {/* ↓ ADDED: review prompt on completed orders if not yet reviewed */}
+              {!hasReviewed ? (
+                <div className="mt-2 mb-4">
+                  <p className="text-sm text-gray-500 mb-3">How was your experience with {order.farmer?.name}?</p>
+                  <ReviewForm
+                    farmerId={order.farmer?._id}
+                    orderId={order._id}
+                    onSuccess={() => setHasReviewed(true)}
+                  />
+                </div>
+              ) : (
+                <p className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-xl px-4 py-2 mb-4 inline-block">
+                  ✓ You've reviewed this farmer
+                </p>
+              )}
+
               <button
                 onClick={() => navigate(`/buyer/crops/${order.cropListing?._id}`)}
                 className="px-6 py-2 bg-blue-50 text-blue-600 font-bold rounded-xl border border-blue-200 hover:bg-blue-100"
@@ -241,7 +281,6 @@ export const BuyerOrderDetail = () => {
             )}
           </div>
 
-          {/* FIX: use order.delivery.* for cost fields */}
           <CostBreakdown
             cropAmount={order.orderDetails?.cropAmount}
             deliveryFee={order.delivery?.deliveryFee}

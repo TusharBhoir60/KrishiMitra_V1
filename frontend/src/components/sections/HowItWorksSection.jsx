@@ -4,14 +4,16 @@ import { useLanguage } from '../../context/LanguageContext';
 
 export const HowItWorksSection = () => {
   const { t } = useLanguage();
-  const hw = t('howItWorks');
+  const hw = t('howItWorks', { returnObjects: true }) || {};
+  const farmerSteps = Array.isArray(hw.farmerSteps) ? hw.farmerSteps : [];
+  const buyerSteps = Array.isArray(hw.buyerSteps) ? hw.buyerSteps : [];
   const containerRef = useRef(null);
   const farmerHeight = '100%';
   const buyerHeight = '100%';
 
   return (
     <section className="bg-white py-24 px-6 lg:px-16 relative" id="how-it-works" ref={containerRef}>
-      <h2 className="font-display text-5xl text-farm-green text-center mb-20">{hw.title}</h2>
+      <h2 className="font-display text-5xl text-farm-green text-center mb-20">{hw.title || ''}</h2>
 
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24">
         {/* Farmer Timeline */}
@@ -22,10 +24,10 @@ export const HowItWorksSection = () => {
             style={{ height: farmerHeight }}
           />
           
-          <h3 className="font-display text-3xl text-farm-green mb-10 pl-16">🌾 {hw.farmerLabel}</h3>
+          <h3 className="font-display text-3xl text-farm-green mb-10 pl-16">🌾 {hw.farmerLabel || ''}</h3>
           
           <div className="space-y-12 z-10 relative">
-            {hw.farmerSteps.map((step, index) => (
+            {farmerSteps.map((step, index) => (
               <motion.div 
                 key={index}
                 initial={{ opacity: 0, x: -50 }}
@@ -52,10 +54,10 @@ export const HowItWorksSection = () => {
             style={{ height: buyerHeight }}
           />
 
-          <h3 className="font-display text-3xl text-farm-gold mb-10 pl-16">🛒 {hw.buyerLabel}</h3>
+          <h3 className="font-display text-3xl text-farm-gold mb-10 pl-16">🛒 {hw.buyerLabel || ''}</h3>
           
           <div className="space-y-12 z-10 relative">
-            {hw.buyerSteps.map((step, index) => (
+            {buyerSteps.map((step, index) => (
               <motion.div 
                 key={index}
                 initial={{ opacity: 0, x: 50 }}

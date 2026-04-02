@@ -1,5 +1,5 @@
 import { useAuth } from '../../hooks/useAuth';
-import { useState } from 'react';
+import { useState, createElement } from 'react';
 import {
   User, LogOut, FileText, Settings, ShieldCheck,
   Phone, MapPin, Tractor, Edit3, Save, X, ChevronRight,
@@ -11,6 +11,7 @@ import { authApi } from '../../api/endpoints/authApi';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useLanguage } from '../../context/LanguageContext';
+import { FarmerProfileReviews } from '../../components/sections/FarmerProfileReviews';
 
 export const FarmerProfile = () => {
   const { t } = useLanguage();
@@ -142,9 +143,9 @@ export const FarmerProfile = () => {
               { label: t('farmer.profile.state'), icon: MapPin, field: 'state', type: 'text' },
               { label: t('farmer.profile.farmType'), icon: Tractor, field: 'farmType', type: 'text', placeholder: 'e.g. Mixed, Organic, Cash Crops' },
               { label: t('farmer.profile.farmSize'), icon: Tractor, field: 'farmSize', type: 'text', placeholder: 'e.g. 5 acres' },
-            ].map(({ label, icon: Icon, field, type, placeholder }) => (
+            ].map(({ label, icon, field, type, placeholder }) => (
               <div key={field} className="flex items-center px-6 py-4 gap-4">
-                <Icon size={17} className="text-gray-400 shrink-0" />
+                {createElement(icon, { size: 17, className: 'text-gray-400 shrink-0' })}
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-gray-400 mb-0.5">{label}</p>
                   {editing ? (
@@ -187,19 +188,25 @@ export const FarmerProfile = () => {
           </div>
         </div>
 
+        <FarmerProfileReviews
+          farmerId={user?._id}
+          farmerName={displayName}
+          farmerLocation={user?.location?.district ? `${user.location.district}, ${user.location.state || 'Maharashtra'}` : ''}
+        />
+
         {/* Settings links */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
           {[
             { label: t('farmer.profile.accountSettings'), icon: Settings, to: null },
             { label: t('farmer.profile.paymentBank'), icon: FileText, to: null },
-          ].map(({ label, icon: Icon, to }) => (
+          ].map(({ label, icon, to }) => (
             <button
               key={label}
               onClick={to ? () => navigate(to) : undefined}
               className="w-full flex items-center justify-between px-6 py-4 border-b border-gray-50 last:border-b-0 hover:bg-gray-50 transition-colors group"
             >
               <div className="flex items-center gap-3 text-farm-dark font-medium text-sm">
-                <Icon size={17} className="text-gray-400" /> {label}
+                {createElement(icon, { size: 17, className: 'text-gray-400' })} {label}
               </div>
               <ChevronRight size={16} className="text-gray-300 group-hover:text-farm-green transition-colors" />
             </button>

@@ -4,7 +4,7 @@ import { AnimatedCounter } from '../ui/AnimatedCounter';
 
 export const StatsRow = () => {
   const { t } = useLanguage();
-  const stats = t('stats');
+  const stats = t('stats', { returnObjects: true });
 
   return (
     <div className="bg-farm-green py-14 px-6 lg:px-16 w-full relative z-10 relative">

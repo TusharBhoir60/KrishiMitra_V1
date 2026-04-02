@@ -7,6 +7,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { AlertCircle, Lightbulb } from 'lucide-react';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import api from '../../api/axiosConfig';
+import { useLanguage } from '../../context/LanguageContext';
 
 const MONTHS = [
   { value: 1, label: 'January' },
@@ -157,11 +158,120 @@ const ForecastTable = ({ forecasts }) => {
 };
 
 export const DemandForecastPage = () => {
+  const { currentLanguage } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [isFallback, setIsFallback] = useState(false);
   const [modelVersion, setModelVersion] = useState('');
   const [forecastWeeksLabel, setForecastWeeksLabel] = useState('1');
+
+  const text = currentLanguage === 'hi'
+    ? {
+        title: 'मांग पूर्वानुमान',
+        subtitle: 'आने वाले सप्ताहों की मांग का अनुमान लगाएं',
+        unavailable: 'AI सेवा उपलब्ध नहीं है',
+        unavailableMsg: 'AI सेवा अभी उपलब्ध नहीं है। कृपया बाद में पुनः प्रयास करें।',
+        details: 'फसल विवरण दर्ज करें',
+        forecast: 'मांग पूर्वानुमान करें',
+        forecasting: 'पूर्वानुमान किया जा रहा है...',
+        success: 'मांग पूर्वानुमान सफलतापूर्वक तैयार हुआ!',
+        failed: 'मांग पूर्वानुमान तैयार नहीं हो सका',
+        fetchFailed: 'मांग पूर्वानुमान प्राप्त नहीं हो सका। कृपया फिर प्रयास करें।'
+      }
+    : currentLanguage === 'mr'
+      ? {
+          title: 'मागणी अंदाज',
+          subtitle: 'पुढील आठवड्यांसाठी मागणीचा अंदाज घ्या',
+          unavailable: 'AI सेवा उपलब्ध नाही',
+          unavailableMsg: 'AI सेवा सध्या उपलब्ध नाही. कृपया नंतर पुन्हा प्रयत्न करा.',
+          details: 'पीक तपशील भरा',
+          forecast: 'मागणी अंदाज लावा',
+          forecasting: 'अंदाज लावला जात आहे...',
+          success: 'मागणी अंदाज यशस्वीरीत्या तयार झाला!',
+          failed: 'मागणी अंदाज तयार झाला नाही',
+          fetchFailed: 'मागणी अंदाज मिळवता आला नाही. कृपया पुन्हा प्रयत्न करा.'
+        }
+      : {
+          title: 'Demand Forecast',
+          subtitle: 'Predict crop demand trends for the upcoming weeks to optimize your sales strategy',
+          unavailable: 'AI Service Unavailable',
+          unavailableMsg: 'The AI service is currently unavailable. Please try again later.',
+          details: 'Enter Crop Details',
+          forecast: 'Forecast Demand',
+          forecasting: 'Forecasting...',
+          success: 'Demand forecast generated successfully!',
+          failed: 'Failed to generate demand forecast',
+          fetchFailed: 'Failed to fetch demand forecast. Please try again.'
+        };
+
+  const formText = currentLanguage === 'hi'
+    ? {
+        cropName: 'फसल का नाम',
+        cropNamePlaceholder: 'उदा., धान, गेहूं, कपास',
+        state: 'राज्य',
+        statePlaceholder: 'उदा., महाराष्ट्र, पंजाब',
+        month: 'महीना',
+        selectMonth: 'महीना चुनें',
+        season: 'मौसम',
+        selectSeason: 'मौसम चुनें',
+        forecastWeeks: 'पूर्वानुमान सप्ताह',
+        weeks: 'सप्ताह',
+        week: 'सप्ताह',
+        historicalDemand: 'ऐतिहासिक मांग स्कोर',
+        historicalPrices: 'ऐतिहासिक कीमतें (₹/किग्रा)',
+        optionalComma: '(वैकल्पिक, अल्पविराम से अलग)',
+        demandPlaceholder: 'उदा., 0.6, 0.7, 0.8',
+        pricesPlaceholder: 'उदा., 45.50, 48.00, 50.25',
+      }
+    : currentLanguage === 'mr'
+      ? {
+          cropName: 'पीक नाव',
+          cropNamePlaceholder: 'उदा., तांदूळ, गहू, कापूस',
+          state: 'राज्य',
+          statePlaceholder: 'उदा., महाराष्ट्र, पंजाब',
+          month: 'महिना',
+          selectMonth: 'महिना निवडा',
+          season: 'हंगाम',
+          selectSeason: 'हंगाम निवडा',
+          forecastWeeks: 'अंदाज आठवडे',
+          weeks: 'आठवडे',
+          week: 'आठवडा',
+          historicalDemand: 'ऐतिहासिक मागणी गुण',
+          historicalPrices: 'ऐतिहासिक किंमती (₹/कि.ग्रॅ.)',
+          optionalComma: '(पर्यायी, स्वल्पविरामाने वेगळे)',
+          demandPlaceholder: 'उदा., 0.6, 0.7, 0.8',
+          pricesPlaceholder: 'उदा., 45.50, 48.00, 50.25',
+        }
+      : {
+          cropName: 'Crop Name',
+          cropNamePlaceholder: 'e.g., Rice, Wheat, Cotton',
+          state: 'State',
+          statePlaceholder: 'e.g., Maharashtra, Punjab',
+          month: 'Month',
+          selectMonth: 'Select a month',
+          season: 'Season',
+          selectSeason: 'Select a season',
+          forecastWeeks: 'Forecast Weeks',
+          weeks: 'weeks',
+          week: 'week',
+          historicalDemand: 'Historical Demand Scores',
+          historicalPrices: 'Historical Prices (₹/kg)',
+          optionalComma: '(Optional, comma-separated)',
+          demandPlaceholder: 'e.g., 0.6, 0.7, 0.8',
+          pricesPlaceholder: 'e.g., 45.50, 48.00, 50.25',
+        };
+
+  const monthLabels = currentLanguage === 'hi'
+    ? ['जनवरी', 'फरवरी', 'मार्च', 'अप्रैल', 'मई', 'जून', 'जुलाई', 'अगस्त', 'सितंबर', 'अक्टूबर', 'नवंबर', 'दिसंबर']
+    : currentLanguage === 'mr'
+      ? ['जानेवारी', 'फेब्रुवारी', 'मार्च', 'एप्रिल', 'मे', 'जून', 'जुलै', 'ऑगस्ट', 'सप्टेंबर', 'ऑक्टोबर', 'नोव्हेंबर', 'डिसेंबर']
+      : MONTHS.map((m) => m.label);
+
+  const seasonLabels = currentLanguage === 'hi'
+    ? ['खरीफ', 'रबी', 'ज़ैद', 'सर्दी', 'गर्मी', 'पूरे वर्ष']
+    : currentLanguage === 'mr'
+      ? ['खरीफ', 'रब्बी', 'जायद', 'हिवाळा', 'उन्हाळा', 'पूर्ण वर्ष']
+      : SEASONS;
 
   const { register, handleSubmit, formState: { errors }, watch } = useForm({
     resolver: yupResolver(schema),
@@ -237,20 +347,20 @@ export const DemandForecastPage = () => {
       if (response.data.success && response.data.data) {
         setResult(response.data.data);
         setModelVersion(response.data.data.model_version || '1.0');
-        toast.success('Demand forecast generated successfully!');
+        toast.success(text.success);
       } else if (response.data.fallback) {
         setIsFallback(true);
-        toast.error('AI service is currently unavailable. Please try again later.', {
+        toast.error(text.unavailableMsg, {
           duration: 5000
         });
       } else {
-        toast.error('Failed to generate demand forecast', {
+        toast.error(text.failed, {
           duration: 5000
         });
       }
     } catch (error) {
       console.error('Demand forecast error:', error);
-      const errorMsg = error.response?.data?.message || 'Failed to fetch demand forecast. Please try again.';
+      const errorMsg = error.response?.data?.message || text.fetchFailed;
       toast.error(errorMsg, {
         duration: 5000
       });
@@ -274,10 +384,10 @@ export const DemandForecastPage = () => {
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
             <Lightbulb className="w-10 h-10 text-green-600" />
-            Demand Forecast
+            {text.title}
           </h1>
           <p className="text-gray-600 text-lg">
-            Predict crop demand trends for the upcoming weeks to optimize your sales strategy
+            {text.subtitle}
           </p>
         </div>
 
@@ -286,9 +396,9 @@ export const DemandForecastPage = () => {
           <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start gap-3">
             <AlertCircle className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold text-yellow-800">AI Service Unavailable</p>
+              <p className="font-semibold text-yellow-800">{text.unavailable}</p>
               <p className="text-sm text-yellow-700">
-                The AI service is currently unavailable. Please try again later.
+                {text.unavailableMsg}
               </p>
             </div>
           </div>
@@ -296,18 +406,18 @@ export const DemandForecastPage = () => {
 
         {/* Form Card */}
         <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">Enter Crop Details</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">{text.details}</h2>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* Crop Name & State - Row 1 */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Crop Name <span className="text-red-500">*</span>
+                  {formText.cropName} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g., Rice, Wheat, Cotton"
+                  placeholder={formText.cropNamePlaceholder}
                   {...register('cropName')}
                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition ${
                     errors.cropName ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
@@ -320,11 +430,11 @@ export const DemandForecastPage = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  State <span className="text-red-500">*</span>
+                  {formText.state} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g., Maharashtra, Punjab"
+                  placeholder={formText.statePlaceholder}
                   {...register('state')}
                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition ${
                     errors.state ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
@@ -340,7 +450,7 @@ export const DemandForecastPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Month <span className="text-red-500">*</span>
+                  {formText.month} <span className="text-red-500">*</span>
                 </label>
                 <select
                   {...register('month')}
@@ -349,10 +459,10 @@ export const DemandForecastPage = () => {
                   }`}
                   defaultValue=""
                 >
-                  <option value="">Select a month</option>
+                  <option value="">{formText.selectMonth}</option>
                   {MONTHS.map((month) => (
                     <option key={month.value} value={month.value}>
-                      {month.label}
+                      {monthLabels[month.value - 1] || month.label}
                     </option>
                   ))}
                 </select>
@@ -363,7 +473,7 @@ export const DemandForecastPage = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Season <span className="text-red-500">*</span>
+                  {formText.season} <span className="text-red-500">*</span>
                 </label>
                 <select
                   {...register('season')}
@@ -372,10 +482,10 @@ export const DemandForecastPage = () => {
                   }`}
                   defaultValue=""
                 >
-                  <option value="">Select a season</option>
-                  {SEASONS.map((season) => (
+                  <option value="">{formText.selectSeason}</option>
+                  {SEASONS.map((season, idx) => (
                     <option key={season} value={season}>
-                      {season}
+                      {seasonLabels[idx] || season}
                     </option>
                   ))}
                 </select>
@@ -388,7 +498,7 @@ export const DemandForecastPage = () => {
             {/* Forecast Weeks - Row 3 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Forecast Weeks: <span className="font-bold text-green-600">{forecastWeeksLabel} weeks</span> <span className="text-red-500">*</span>
+                {formText.forecastWeeks}: <span className="font-bold text-green-600">{forecastWeeksLabel} {formText.weeks}</span> <span className="text-red-500">*</span>
               </label>
               <input
                 type="range"
@@ -399,8 +509,8 @@ export const DemandForecastPage = () => {
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600"
               />
               <div className="flex justify-between text-xs text-gray-500 mt-2">
-                <span>1 week</span>
-                <span>8 weeks</span>
+                <span>1 {formText.week}</span>
+                <span>8 {formText.weeks}</span>
               </div>
               {errors.forecastWeeks && (
                 <p className="text-red-600 text-sm mt-2">{errors.forecastWeeks.message}</p>
@@ -410,11 +520,11 @@ export const DemandForecastPage = () => {
             {/* Historical Demand Scores - Row 4 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Historical Demand Scores <span className="text-gray-400 text-xs ml-1">(Optional, comma-separated)</span>
+                {formText.historicalDemand} <span className="text-gray-400 text-xs ml-1">{formText.optionalComma}</span>
               </label>
               <input
                 type="text"
-                placeholder="e.g., 0.6, 0.7, 0.8"
+                placeholder={formText.demandPlaceholder}
                 {...register('historicalDemandScores')}
                 className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition ${
                   errors.historicalDemandScores ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
@@ -428,11 +538,11 @@ export const DemandForecastPage = () => {
             {/* Historical Prices - Row 5 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Historical Prices (₹/kg) <span className="text-gray-400 text-xs ml-1">(Optional, comma-separated)</span>
+                {formText.historicalPrices} <span className="text-gray-400 text-xs ml-1">{formText.optionalComma}</span>
               </label>
               <input
                 type="text"
-                placeholder="e.g., 45.50, 48.00, 50.25"
+                placeholder={formText.pricesPlaceholder}
                 {...register('historicalPrices')}
                 className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition ${
                   errors.historicalPrices ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
@@ -455,7 +565,7 @@ export const DemandForecastPage = () => {
                 }`}
               >
                 {loading && <LoadingSpinner size="sm" className="flex items-center justify-center" />}
-                {loading ? 'Forecasting...' : 'Forecast Demand'}
+                {loading ? text.forecasting : text.forecast}
               </button>
             </div>
           </form>

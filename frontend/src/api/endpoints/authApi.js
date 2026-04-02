@@ -6,7 +6,7 @@ export const authApi = {
       fullName,
       district,
       state = 'Maharashtra',
-      confirmPassword,
+      confirmPassword: _confirmPassword,
       companyName,
       serviceAreas,
       maxLoadCapacity,

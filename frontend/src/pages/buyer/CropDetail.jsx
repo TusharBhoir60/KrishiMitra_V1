@@ -7,9 +7,10 @@ import { deliveryApi } from '../../api/endpoints/deliveryApi';
 import { Badge } from '../../components/ui/Badge';
 import { DeliveryBadge } from '../../components/ui/DeliveryBadge';
 import { PricePredictionCard } from '../../components/ui/PricePredictionCard';
+import { FarmerRatingBadge } from '../../components/common/FarmerRatingBadge';
 import { formatINR } from '../../utils/formatCurrency';
 import { SkeletonCard } from '../../components/common/SkeletonCard';
-import { MapPin, ShieldCheck, ShoppingCart, Truck, History } from 'lucide-react';
+import { MapPin, ShieldCheck, ShoppingCart, Truck, History, Star } from 'lucide-react';
 import dayjs from 'dayjs';
 
 export const CropDetail = () => {
@@ -38,7 +39,7 @@ export const CropDetail = () => {
           });
           setEstimate(estRes.data?.data);
         }
-      } catch (err) {
+      } catch {
         navigate('/buyer/marketplace');
       } finally {
         setLoading(false);
@@ -105,6 +106,18 @@ export const CropDetail = () => {
             {/* AI Insight */}
             <div className="mb-2">
               <PricePredictionCard cropName={crop.cropName} district={crop.farmer.location.district} userPrice={crop.pricePerKg} />
+            </div>
+
+            <div>
+              <FarmerRatingBadge />
+              <Link
+                to={`/buyer/farmers/${crop.farmer?._id || crop.farmerId}/reviews`}
+                state={{ farmerName: crop.farmer?.name, farmerLocation: `${crop.farmer.location.district}, ${crop.farmer.location.state}` }}
+                className="mt-3 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-700 transition hover:bg-emerald-100"
+              >
+                <Star className="h-4 w-4 fill-current" />
+                See all reviews
+              </Link>
             </div>
 
             {/* Timestamps */}

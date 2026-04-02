@@ -4,7 +4,7 @@ import { CropCard } from '../buyer/CropCard';
 
 export const MarketplacePreview = () => {
   const { t } = useLanguage();
-  const mp = t('marketplace');
+  const mp = t('marketplace', { returnObjects: true }) || {};
 
   const hardcodedCrops = [
     { name: 'Red Tomatoes', farmerName: 'Ramesh Patil', location: 'Pune', price: 22, qty: '240kg', posted: '2 days ago', organic: true },
@@ -21,8 +21,8 @@ export const MarketplacePreview = () => {
       className="py-24"
     >
       <div className="px-6 lg:px-16 max-w-7xl mx-auto mb-20">
-        <h2 className="font-display text-5xl text-farm-green text-center mb-4">{mp.title}</h2>
-        <p className="font-body text-xl text-gray-500 text-center mb-16">{mp.subtitle}</p>
+        <h2 className="font-display text-5xl text-farm-green text-center mb-4">{mp.title || ''}</h2>
+        <p className="font-body text-xl text-gray-500 text-center mb-16">{mp.subtitle || ''}</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {hardcodedCrops.map((crop, index) => (
@@ -32,7 +32,7 @@ export const MarketplacePreview = () => {
 
         <div className="mt-16 flex justify-center">
           <button className="group flex items-center gap-2 border-2 border-farm-green text-farm-green rounded-xl px-10 py-4 font-body font-semibold text-lg hover:bg-farm-green hover:text-white transition-colors">
-            {mp.viewAll}
+            {mp.viewAll || ''}
             <ArrowRight className="transform transition-transform group-hover:translate-x-1" size={20} />
           </button>
         </div>
@@ -41,7 +41,7 @@ export const MarketplacePreview = () => {
       {/* Live Price Ticker */}
       <div className="bg-farm-green py-3 w-full flex items-center overflow-hidden whitespace-nowrap relative">
         <div className="absolute left-0 top-0 bottom-0 bg-farm-green z-10 px-6 flex items-center justify-center font-body font-semibold text-farm-gold shadow-[10px_0_20px_#1B4332]">
-          🔴 {mp.livePrices}
+          🔴 {mp.livePrices || ''}
         </div>
         <div className="flex animate-ticker pl-[200px] hover:[animation-play-state:paused] cursor-default">
           <span className="text-white/80 font-body text-sm mr-8">🌽 Maize · Nagpur · ₹14/kg | 🍅 Tomato · Pune · ₹22/kg | 🧅 Onion · Nashik · ₹12/kg | 🌾 Wheat · Amravati · ₹28/kg | 🍌 Banana · Jalgaon · ₹18/kg | 🥔 Potato · Agra · ₹16/kg | 🌶️ Chilli · Guntur · ₹85/kg | 🍇 Grapes · Nashik · ₹65/kg</span>

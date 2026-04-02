@@ -1,10 +1,74 @@
 import { CropListing } from '../models/croplisting.js'
+import { User } from '../models/user.model.js'
+import jwt from 'jsonwebtoken'
 import { uploadMultipleToCloudinary } from '../utils/cloudinary.js'
 import { ApiError } from '../utils/ApiError.js'
 import { ApiResponse } from '../utils/ApiResponse.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
+import { detectLanguage, translateText } from '../services/translationService.js'
+import { analyzeUploadedCropImage } from '../utils/qualityAnalysis.js'
 
 const escapeRegex = (value = '') => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+const resolveUserPreferredLanguage = async (req) => {
+  try {
+    if (req.user?._id) {
+      const user = await User.findById(req.user._id).select('language')
+      return user?.language || 'english'
+    }
+
+    const bearerToken = req.headers?.authorization?.startsWith('Bearer ')
+      ? req.headers.authorization.split(' ')[1]
+      : null
+    const token = req.cookies?.accessToken || bearerToken
+
+    if (!token) return 'english'
+
+    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+    if (!decoded?.id) return 'english'
+
+    const user = await User.findById(decoded.id).select('language')
+    return user?.language || 'english'
+  } catch {
+    return 'english'
+  }
+}
+
+const translateListingForLanguage = async (listingDoc, preferredLanguage, localCache) => {
+  const listing = listingDoc.toObject ? listingDoc.toObject() : { ...listingDoc }
+
+  if (!preferredLanguage || preferredLanguage === 'english') {
+    return listing
+  }
+
+  const sourceLanguage = listing.language || detectLanguage(`${listing.title_original || listing.cropName || ''} ${listing.description_original || listing.description || ''}`)
+
+  if (sourceLanguage === preferredLanguage) {
+    return listing
+  }
+
+  const sourceTitle = listing.title_original || listing.cropName || ''
+  const sourceDescription = listing.description_original || listing.description || ''
+
+  const titleKey = `${sourceLanguage}:${preferredLanguage}:title:${sourceTitle}`
+  const descriptionKey = `${sourceLanguage}:${preferredLanguage}:description:${sourceDescription}`
+
+  if (sourceTitle) {
+    if (!localCache.has(titleKey)) {
+      localCache.set(titleKey, await translateText(sourceTitle, preferredLanguage))
+    }
+    listing.cropName = localCache.get(titleKey)
+  }
+
+  if (sourceDescription) {
+    if (!localCache.has(descriptionKey)) {
+      localCache.set(descriptionKey, await translateText(sourceDescription, preferredLanguage))
+    }
+    listing.description = localCache.get(descriptionKey)
+  }
+
+  return listing
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  createListing
@@ -47,13 +111,27 @@ const createListing = asyncHandler(async (req, res) => {
 
   const parseBool = (val) => val === 'true' || val === true
 
+  const primaryImageAnalysis = req.files?.[0]
+    ? analyzeUploadedCropImage(req.files[0], cropName)
+    : null
+
+  if (primaryImageAnalysis && !primaryImageAnalysis.ok) {
+    throw new ApiError(400, primaryImageAnalysis.error)
+  }
+
   const images = req.files?.length
     ? await uploadMultipleToCloudinary(req.files.map((f) => f.buffer))
     : []
 
+  const originalTitle = cropName || ''
+  const originalDescription = description || ''
+  const detectedLanguage = detectLanguage(`${originalTitle} ${originalDescription}`)
+  const canonicalCropName = await translateText(originalTitle, 'english')
+
   const listing = await CropListing.create({
     farmer:      req.user._id,          // injected by authMiddleware
-    cropName,
+    cropName: canonicalCropName,
+    title_original: originalTitle,
     category,
     quantity:    Number(quantity),
     availableQty: Number(quantity),
@@ -61,8 +139,10 @@ const createListing = asyncHandler(async (req, res) => {
     pricePerKg:  Number(pricePerKg),
     harvestDate: harvestDate || undefined,
     description: description || '',
+    description_original: originalDescription,
+    language: detectedLanguage,
     quality: {
-      grade:        grade        || 'A',
+      grade:        primaryImageAnalysis?.data?.grade || grade || 'A',
       perishability: perishability || 'medium',
     },
     delivery: {
@@ -112,8 +192,13 @@ const getAllListings = asyncHandler(async (req, res) => {
   const filter = { isAvailable: true }
 
   if (crop) {
+    const queryLanguage = detectLanguage(crop)
+    const normalizedCropQuery = queryLanguage === 'english'
+      ? crop
+      : await translateText(crop, 'english')
+
     // Case-insensitive partial match so buyers can search "tom" and get "Tomato"
-    filter.cropName = { $regex: escapeRegex(crop.trim()), $options: 'i' }
+    filter.cropName = { $regex: escapeRegex(normalizedCropQuery.trim()), $options: 'i' }
   }
 
   if (state) {
@@ -155,9 +240,17 @@ const getAllListings = asyncHandler(async (req, res) => {
     .populate('farmer', 'name phone location')   // never expose password/email
     .sort({ createdAt: -1 })                      // newest listings first
 
+  const preferredLanguage = await resolveUserPreferredLanguage(req)
+
+  // Per-request cache avoids repeated translation calls for duplicate text values.
+  const perRequestTranslationCache = new Map()
+  const localizedListings = await Promise.all(
+    listings.map((listing) => translateListingForLanguage(listing, preferredLanguage, perRequestTranslationCache))
+  )
+
   return res
     .status(200)
-    .json(new ApiResponse(200, listings, 'Listings fetched successfully'))
+    .json(new ApiResponse(200, localizedListings, 'Listings fetched successfully'))
 })
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -172,9 +265,15 @@ const getMyListings = asyncHandler(async (req, res) => {
   const listings = await CropListing.find({ farmer: req.user._id })
     .sort({ createdAt: -1 })
 
+  const preferredLanguage = await resolveUserPreferredLanguage(req)
+  const perRequestTranslationCache = new Map()
+  const localizedListings = await Promise.all(
+    listings.map((listing) => translateListingForLanguage(listing, preferredLanguage, perRequestTranslationCache))
+  )
+
   return res
     .status(200)
-    .json(new ApiResponse(200, listings, 'Your listings fetched successfully'))
+    .json(new ApiResponse(200, localizedListings, 'Your listings fetched successfully'))
 })
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -194,9 +293,12 @@ const getSingleListing = asyncHandler(async (req, res) => {
     throw new ApiError(404, 'Listing not found')
   }
 
+  const preferredLanguage = await resolveUserPreferredLanguage(req)
+  const localizedListing = await translateListingForLanguage(listing, preferredLanguage, new Map())
+
   return res
     .status(200)
-    .json(new ApiResponse(200, listing, 'Listing fetched successfully'))
+    .json(new ApiResponse(200, localizedListing, 'Listing fetched successfully'))
 })
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -224,12 +326,22 @@ const updateListing = asyncHandler(async (req, res) => {
   }
 
   if (req.files?.length) {
+    const primaryImageAnalysis = analyzeUploadedCropImage(
+      req.files[0],
+      req.body.cropName ?? listing.title_original ?? listing.cropName
+    )
+
+    if (!primaryImageAnalysis.ok) {
+      throw new ApiError(400, primaryImageAnalysis.error)
+    }
+
     const images = await uploadMultipleToCloudinary(
       req.files.map((f) => f.buffer)
     )
     if (images.length) {
       listing.images = images
       listing.imageUploadedAt = new Date()
+      listing.quality.grade = primaryImageAnalysis.data.grade
     }
   }
 
@@ -246,7 +358,6 @@ const updateListing = asyncHandler(async (req, res) => {
     district,
     taluka,
     village,
-    grade,
     perishability,
     farmerDelivers,
     buyerPickup,
@@ -258,7 +369,10 @@ const updateListing = asyncHandler(async (req, res) => {
 
   const parseBool = (val) => val === 'true' || val === true
 
-  if (cropName    !== undefined) listing.cropName    = cropName
+  if (cropName    !== undefined) {
+    listing.title_original = cropName
+    listing.cropName = await translateText(cropName, 'english')
+  }
   if (category    !== undefined) listing.category    = category
   // Item 6: recalculate availableQty when quantity changes
   if (quantity    !== undefined) {
@@ -270,9 +384,9 @@ const updateListing = asyncHandler(async (req, res) => {
   if (pricePerKg  !== undefined) listing.pricePerKg  = Number(pricePerKg)
   if (harvestDate !== undefined) listing.harvestDate = harvestDate
   if (description !== undefined) listing.description = description
+  if (description !== undefined) listing.description_original = description
 
   // Quality subdocument
-  if (grade         !== undefined) listing.quality.grade         = grade
   if (perishability !== undefined) listing.quality.perishability = perishability
 
   // Delivery subdocument
@@ -290,6 +404,12 @@ const updateListing = asyncHandler(async (req, res) => {
   if (district !== undefined) listing.location.district = district
   if (taluka   !== undefined) listing.location.taluka   = taluka
   if (village  !== undefined) listing.location.village  = village
+
+  if (cropName !== undefined || description !== undefined) {
+    const titleForDetection = listing.title_original || listing.cropName || ''
+    const descriptionForDetection = listing.description_original || listing.description || ''
+    listing.language = detectLanguage(`${titleForDetection} ${descriptionForDetection}`)
+  }
 
   const updatedListing = await listing.save()
 

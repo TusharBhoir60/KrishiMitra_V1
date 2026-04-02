@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
 import { ordersApi } from '../../api/endpoints/ordersApi';
 import { getStatusLabel, getStatusColor } from '../../utils/orderStatusHelpers';
 import { formatINR } from '../../utils/formatCurrency';
@@ -30,7 +29,6 @@ const TERMINAL_STATUSES = ['declined', 'cancelled', 'expired'];
 
 export const BuyerOrders = () => {
   const { t } = useLanguage();
-  const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -43,7 +41,7 @@ export const BuyerOrders = () => {
         setError(null);
         const res = await ordersApi.getBuyerOrders();
         setOrders(res.data?.data || []);
-      } catch (e) {
+      } catch {
         setError('Failed to load orders. Please try again.');
       } finally {
         setLoading(false);

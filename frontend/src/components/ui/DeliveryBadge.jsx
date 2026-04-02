@@ -1,6 +1,6 @@
 import { formatINR } from '../../utils/formatCurrency';
 
-export const DeliveryBadge = ({ method, zone, estimatedCost, assured, available = true }) => {
+export const DeliveryBadge = ({ method, estimatedCost, available = true }) => {
   if (method === 'farmer_delivers') {
     return (
       <div className="inline-flex items-center px-3 py-1 rounded-full bg-amber-50 text-amber-800 border-amber-200 border text-sm font-medium font-body">

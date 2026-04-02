@@ -1,6 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux';
+import { I18nextProvider } from 'react-i18next';
+import i18n from './i18n';
 import { store } from './store';
 import { BuyerCartProvider } from './context/BuyerCartContext';
 import { OrderProvider } from './context/OrderContext';
@@ -35,13 +37,15 @@ const hydrateAuth = async () => {
 hydrateAuth().finally(() => {
   ReactDOM.createRoot(document.getElementById('root')).render(
     <Provider store={store}>
-      <BuyerCartProvider>
-        <OrderProvider>
-          <LanguageProvider>
-            <App />
-          </LanguageProvider>
-        </OrderProvider>
-      </BuyerCartProvider>
+      <I18nextProvider i18n={i18n}>
+        <BuyerCartProvider>
+          <OrderProvider>
+            <LanguageProvider>
+              <App />
+            </LanguageProvider>
+          </OrderProvider>
+        </BuyerCartProvider>
+      </I18nextProvider>
     </Provider>
   );
 });
