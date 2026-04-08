@@ -10,6 +10,7 @@ import deliveryRoutes from "./routes/deliveryRoutes.js"
 import adminRoutes from "./routes/adminRoutes.js"
 import aiRoutes from "./routes/aiRoutes.js"
 import { errorHandler } from "./middlewares/errorHandler.js"
+import ReviewRoutes from "./routes/reviewRoutes.js"
 
 const app = express() 
 
@@ -60,7 +61,7 @@ app.use("/api/transporters", transporterRoutes)
 app.use("/api/delivery", deliveryRoutes)
 app.use("/api/admin", adminRoutes)
 app.use("/api/ai", aiRoutes)
-app.use("/api/ml", aiRoutes)
+app.use("/api/reviews", ReviewRoutes) //register review routes under /api/reviews path
 
 app.get('/api/health', (req, res) => {
     res.status(200).json({ success: true, message: 'KrishiBazaar API running' })

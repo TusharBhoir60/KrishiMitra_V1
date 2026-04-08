@@ -1,5 +1,5 @@
 import { useAuth } from '../../hooks/useAuth';
-import { useState } from 'react';
+import { useState, createElement } from 'react';
 import {
   User, LogOut, Phone, MapPin, Edit3, Save, X, ChevronRight,
   Star, Truck, FileText, Settings, ShieldCheck,
@@ -148,9 +148,9 @@ export const TransporterProfile = () => {
               { label: 'License Number', icon: FileText, field: 'licenseNumber', type: 'text' },
               { label: 'District', icon: MapPin, field: 'district', type: 'text' },
               { label: 'State', icon: MapPin, field: 'state', type: 'text' },
-            ].map(({ label, icon: Icon, field, type, placeholder }) => (
+            ].map(({ label, icon, field, type, placeholder }) => (
               <div key={field} className="flex items-center px-6 py-4 gap-4">
-                <Icon size={17} className="text-gray-400 shrink-0" />
+                {createElement(icon, { size: 17, className: 'text-gray-400 shrink-0' })}
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-gray-400 mb-0.5">{label}</p>
                   {editing ? (
@@ -219,14 +219,14 @@ export const TransporterProfile = () => {
           {[
             { label: 'Account Settings', icon: Settings, to: null },
             { label: 'Wallet & Payouts', icon: FileText, to: null },
-          ].map(({ label, icon: Icon, to }) => (
+          ].map(({ label, icon, to }) => (
             <button
               key={label}
               onClick={to ? () => navigate(to) : undefined}
               className="w-full flex items-center justify-between px-6 py-4 border-b border-gray-50 last:border-b-0 hover:bg-gray-50 transition-colors group"
             >
               <div className="flex items-center gap-3 text-farm-dark font-medium text-sm">
-                <Icon size={17} className="text-gray-400" /> {label}
+                {createElement(icon, { size: 17, className: 'text-gray-400' })} {label}
               </div>
               <ChevronRight size={16} className="text-gray-300 group-hover:text-purple-600 transition-colors" />
             </button>

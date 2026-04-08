@@ -18,11 +18,11 @@ export const FarmerLayout = () => {
     { name: t('farmer.nav.dashboard'), to: '/farmer/dashboard', icon: LayoutDashboard },
     { name: t('farmer.nav.listings'),  to: '/farmer/listings',  icon: Package },
     { name: t('farmer.nav.orders'),    to: '/farmer/orders',    icon: ShoppingCart },
-    { name: 'Price Prediction', to: '/farmer/ai/price-prediction', icon: TrendingUp },
-    { name: 'Demand Forecast', to: '/farmer/ai/demand-forecast', icon: Lightbulb },
-    { name: 'Quality Analysis', to: '/farmer/ai/quality-analysis', icon: CheckCircle2 },
-    { name: 'Crop Recommendation', to: '/farmer/ai/crop-recommendation', icon: Sprout },
-    { name: 'Price Range Prediction', to: '/farmer/ai/price-range-prediction', icon: ChartNoAxesColumn },
+    { name: t('farmer.nav.aiPricePrediction'), to: '/farmer/ai/price-prediction', icon: TrendingUp },
+    { name: t('farmer.nav.aiDemandForecast'), to: '/farmer/ai/demand-forecast', icon: Lightbulb },
+    { name: t('farmer.nav.aiQualityAnalysis'), to: '/farmer/ai/quality-analysis', icon: CheckCircle2 },
+    { name: t('farmer.nav.aiCropRecommendation'), to: '/farmer/ai/crop-recommendation', icon: Sprout },
+    { name: t('farmer.nav.aiPriceRangePrediction'), to: '/farmer/ai/price-range-prediction', icon: ChartNoAxesColumn },
     { name: t('farmer.nav.profile'),   to: '/farmer/profile',   icon: User },
   ];
 

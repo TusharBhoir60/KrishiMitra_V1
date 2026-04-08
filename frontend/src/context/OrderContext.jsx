@@ -55,6 +55,7 @@ const resolveId = (value) => {
   return String(value._id || value.id || value.userId || '');
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const ORDER_STATUSES = {
   PENDING_FARMER_APPROVAL: 'pending_farmer_approval',
   ORDER_CONFIRMED: 'order_confirmed',
@@ -64,6 +65,7 @@ export const ORDER_STATUSES = {
   ORDER_REJECTED: 'order_rejected',
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const ORDER_STATUS_LABELS = {
   pending_farmer_approval: 'Pending Farmer Approval',
   order_confirmed: 'Order Confirmed',
@@ -73,6 +75,7 @@ export const ORDER_STATUS_LABELS = {
   order_rejected: 'Order Rejected',
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const ORDER_STATUS_COLORS = {
   pending_farmer_approval: 'bg-amber-100 text-amber-800',
   order_confirmed: 'bg-green-100 text-green-800',
@@ -82,6 +85,7 @@ export const ORDER_STATUS_COLORS = {
   order_rejected: 'bg-red-100 text-red-800',
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const PROGRESS_STEPS = [
   { key: 'pending_farmer_approval', label: 'Pending Approval' },
   { key: 'order_confirmed', label: 'Order Confirmed' },
@@ -90,6 +94,7 @@ export const PROGRESS_STEPS = [
   { key: 'delivered', label: 'Delivered' },
 ];
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const DELIVERY_METHOD_LABELS = {
   farmer_delivery: 'Farmer Delivery',
   buyer_pickup: 'Farm Pickup',
@@ -249,6 +254,7 @@ export const OrderProvider = ({ children }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useOrders = () => {
   const ctx = useContext(OrderContext);
   if (!ctx) throw new Error('useOrders must be used within OrderProvider');

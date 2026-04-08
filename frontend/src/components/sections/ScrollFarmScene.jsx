@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '../../context/LanguageContext';
 
 export const ScrollFarmScene = () => {
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
   const sectionRef = useRef(null);
   const [progress, setProgress] = useState(0);
   const NAVBAR_OFFSET = 80;
@@ -36,6 +36,45 @@ export const ScrollFarmScene = () => {
   };
 
   const sceneIndex = getActiveScene();
+
+  const sceneText = currentLanguage === 'hi'
+    ? {
+        nodes: { farmer: 'किसान', aggregator: 'एग्रीगेटर', wholesale: 'थोक विक्रेता', retailer: 'रिटेलर', consumer: 'उपभोक्ता' },
+        freshTomatoes: 'ताज़ा टमाटर',
+        farmerLocation: 'अर्जुन किसान • पुणे',
+        requestOrder: 'ऑर्डर अनुरोध',
+        joinFarmer: 'किसान के रूप में जुड़ें',
+        joinFarmerSub: 'फसल सूचीबद्ध करें, बिचौलियों को हटाएं और उचित आय पाएं।',
+        startFree: 'मुफ्त शुरू करें →',
+        joinBuyer: 'खरीदार के रूप में जुड़ें',
+        joinBuyerSub: 'कम लागत पर सीधे खेतों से ताज़ा उपज प्राप्त करें।',
+        exploreMarket: 'बाज़ार देखें →',
+      }
+    : currentLanguage === 'mr'
+      ? {
+          nodes: { farmer: 'शेतकरी', aggregator: 'संकलक', wholesale: 'घाऊक', retailer: 'किरकोळ विक्रेता', consumer: 'ग्राहक' },
+          freshTomatoes: 'ताजे टोमॅटो',
+          farmerLocation: 'अर्जुन शेतकरी • पुणे',
+          requestOrder: 'ऑर्डर विनंती',
+          joinFarmer: 'शेतकरी म्हणून सामील व्हा',
+          joinFarmerSub: 'पीक सूचीबद्ध करा, दलाल टाळा आणि योग्य कमाई करा.',
+          startFree: 'मोफत सुरू करा →',
+          joinBuyer: 'खरेदीदार म्हणून सामील व्हा',
+          joinBuyerSub: 'कमी खर्चात थेट शेतातून ताजी उत्पादने मिळवा.',
+          exploreMarket: 'बाजार पहा →',
+        }
+      : {
+          nodes: { farmer: 'Farmer', aggregator: 'Aggregator', wholesale: 'Wholesale', retailer: 'Retailer', consumer: 'Consumer' },
+          freshTomatoes: 'Fresh Tomatoes',
+          farmerLocation: 'Arjun Farmer • Pune',
+          requestOrder: 'Request Order',
+          joinFarmer: 'Join as Farmer',
+          joinFarmerSub: 'List crops, skip middlemen, and earn what you deserve.',
+          startFree: 'Start Free →',
+          joinBuyer: 'Join as Buyer',
+          joinBuyerSub: 'Source fresh produce directly from farms at lower costs.',
+          exploreMarket: 'Explore Market →',
+        };
 
   const farmerCard = (
     <div className="absolute top-8 left-8 lg:left-16 bg-farm-dark/85 backdrop-blur-sm rounded-2xl p-6 max-w-sm z-30 shadow-2xl">
@@ -140,11 +179,11 @@ export const ScrollFarmScene = () => {
 
                 {/* Nodess */}
                 {[
-                  { id: 'farmer', label: 'Farmer', price: '₹18/kg', bg: 'bg-farm-green', text: 'text-farm-gold' },
-                  { id: 'm1', label: 'Aggregator', price: '₹22', bg: 'bg-gray-600', text: 'text-white/60' },
-                  { id: 'm2', label: 'Wholesale', price: '₹30', bg: 'bg-gray-500', text: 'text-white/70' },
-                  { id: 'm3', label: 'Retailer', price: '₹38', bg: 'bg-gray-400', text: 'text-white/80' },
-                  { id: 'buyer', label: 'Consumer', price: '₹45/kg', bg: 'bg-blue-700', text: 'text-red-400' }
+                  { id: 'farmer', label: sceneText.nodes.farmer, price: '₹18/kg', bg: 'bg-farm-green', text: 'text-farm-gold' },
+                  { id: 'm1', label: sceneText.nodes.aggregator, price: '₹22', bg: 'bg-gray-600', text: 'text-white/60' },
+                  { id: 'm2', label: sceneText.nodes.wholesale, price: '₹30', bg: 'bg-gray-500', text: 'text-white/70' },
+                  { id: 'm3', label: sceneText.nodes.retailer, price: '₹38', bg: 'bg-gray-400', text: 'text-white/80' },
+                  { id: 'buyer', label: sceneText.nodes.consumer, price: '₹45/kg', bg: 'bg-blue-700', text: 'text-red-400' }
                 ].map((node, i) => (
                   <motion.div 
                     key={node.id}
@@ -251,10 +290,10 @@ export const ScrollFarmScene = () => {
               >
                 <div className="h-40 bg-orange-100 flex items-center justify-center text-6xl">🍅</div>
                 <div className="p-4 flex-1 flex flex-col">
-                  <h4 className="font-display font-bold text-xl text-farm-dark">Fresh Tomatoes</h4>
+                  <h4 className="font-display font-bold text-xl text-farm-dark">{sceneText.freshTomatoes}</h4>
                   <div className="text-farm-gold font-bold text-lg mt-1">₹22/kg</div>
-                  <div className="text-sm text-gray-500 mt-2">Arjun Farmer • Pune</div>
-                  <button className="mt-auto w-full bg-farm-green text-white py-3 rounded-xl font-body font-bold text-sm">Request Order</button>
+                  <div className="text-sm text-gray-500 mt-2">{sceneText.farmerLocation}</div>
+                  <button className="mt-auto w-full bg-farm-green text-white py-3 rounded-xl font-body font-bold text-sm">{sceneText.requestOrder}</button>
                 </div>
               </motion.div>
             </motion.div>
@@ -297,9 +336,9 @@ export const ScrollFarmScene = () => {
                   onClick={() => window.location.href = '/register?role=farmer'}
                 >
                   <div className="text-5xl mb-4">🌾</div>
-                  <h3 className="font-display text-2xl text-farm-dark font-bold mb-2">Join as Farmer</h3>
-                  <p className="font-body text-farm-dark/80 text-sm mb-6 flex-1">List crops, skip middlemen, and earn what you deserve.</p>
-                  <button className="bg-farm-green text-white w-full rounded-xl py-3 font-body font-bold">Start Free →</button>
+                  <h3 className="font-display text-2xl text-farm-dark font-bold mb-2">{sceneText.joinFarmer}</h3>
+                  <p className="font-body text-farm-dark/80 text-sm mb-6 flex-1">{sceneText.joinFarmerSub}</p>
+                  <button className="bg-farm-green text-white w-full rounded-xl py-3 font-body font-bold">{sceneText.startFree}</button>
                 </motion.div>
 
                 {/* Buyer Card */}
@@ -309,9 +348,9 @@ export const ScrollFarmScene = () => {
                   onClick={() => window.location.href = '/register?role=buyer'}
                 >
                   <div className="text-5xl mb-4">🛒</div>
-                  <h3 className="font-display text-2xl text-white font-bold mb-2">Join as Buyer</h3>
-                  <p className="font-body text-white/70 text-sm mb-6 flex-1">Source fresh produce directly from farms at lower costs.</p>
-                  <button className="bg-white text-farm-green hover:bg-farm-gold hover:text-farm-dark transition-colors w-full rounded-xl py-3 font-body font-bold">Explore Market →</button>
+                  <h3 className="font-display text-2xl text-white font-bold mb-2">{sceneText.joinBuyer}</h3>
+                  <p className="font-body text-white/70 text-sm mb-6 flex-1">{sceneText.joinBuyerSub}</p>
+                  <button className="bg-white text-farm-green hover:bg-farm-gold hover:text-farm-dark transition-colors w-full rounded-xl py-3 font-body font-bold">{sceneText.exploreMarket}</button>
                 </motion.div>
               </div>
 

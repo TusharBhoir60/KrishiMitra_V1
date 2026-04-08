@@ -24,6 +24,11 @@ const userSchema = new mongoose.Schema({
     enum: ["farmer", "buyer", "transporter", "admin"],
     required: [true, "Role is required"],
   },
+  language: {
+    type: String,
+    enum: ["english", "hindi", "marathi"],
+    default: "english",
+  },
   phone: {
     type: String,
     trim: true,

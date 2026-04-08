@@ -67,12 +67,12 @@ export const deliveryApi = {
     return { data: { success: true, ...(res.data?.data || {}) } };
   },
 
-  verifyPickup: async (id, otp) => {
-    await api.patch(`/orders/${id}/verify-otp`, { otp });
+  verifyPickup: async (id, _otp) => {
+    await api.patch(`/orders/${id}/verify-otp`, { otp: _otp });
     return { data: { success: true } };
   },
 
-  verifyDelivery: async (id, otp) => {
+  verifyDelivery: async (id) => {
     await api.patch(`/orders/${id}/mark-delivered`);
     return { data: { success: true } };
   },

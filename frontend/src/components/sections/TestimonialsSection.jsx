@@ -4,7 +4,7 @@ import { useLanguage } from '../../context/LanguageContext';
 
 export const TestimonialsSection = () => {
   const { t } = useLanguage();
-  const testData = t('testimonials');
+  const testData = t('testimonials', { returnObjects: true }) || {};
   
   if (!testData || !testData.items) return null;
 

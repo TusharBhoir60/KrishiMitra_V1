@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { deliveryApi } from '../../api/endpoints/deliveryApi';
-import { useAuth } from '../../hooks/useAuth';
 import { formatINR } from '../../utils/formatCurrency';
 import { SkeletonCard } from '../../components/common/SkeletonCard';
 import { MapPin, Truck, CheckCircle, Navigation, Phone, ShieldCheck, Play, KeyRound, Package } from 'lucide-react';
@@ -14,23 +13,23 @@ export const ActiveJob = () => {
   const [loading, setLoading] = useState(true);
   const [otp, setOtp] = useState(['', '', '', '']);
 
-  const fetchJob = async () => {
+  const fetchJob = useCallback(async () => {
     try {
       const res = await deliveryApi.getJobById(id);
       setJob(res.data?.data);
-    } catch (e) {
+    } catch {
       toast.error('Job details not found');
       navigate('/transporter/jobs');
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, navigate]);
 
   useEffect(() => {
     fetchJob();
     const interval = setInterval(fetchJob, 15000); // Poll fast for status changes
     return () => clearInterval(interval);
-  }, [id]);
+  }, [fetchJob]);
 
   const handleAction = async (actionStr) => {
     try {
@@ -57,8 +56,8 @@ export const ActiveJob = () => {
         setOtp(['', '', '', '']);
       }
       fetchJob();
-    } catch (e) {
-      toast.error(e.response?.data?.message || 'Failed to update job status');
+    } catch (_e) {
+      toast.error(_e.response?.data?.message || 'Failed to update job status');
     }
   };
 

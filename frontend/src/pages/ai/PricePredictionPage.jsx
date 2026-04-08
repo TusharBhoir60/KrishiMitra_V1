@@ -7,6 +7,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { AlertCircle, CheckCircle2, TrendingUp } from 'lucide-react';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import api from '../../api/axiosConfig';
+import { useLanguage } from '../../context/LanguageContext';
 
 const MONTHS = [
   { value: 1, label: 'January' },
@@ -127,10 +128,116 @@ const ResultCard = ({ result, modelVersion }) => {
 };
 
 export const PricePredictionPage = () => {
+  const { currentLanguage } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [isFallback, setIsFallback] = useState(false);
   const [modelVersion, setModelVersion] = useState('');
+
+  const text = currentLanguage === 'hi'
+    ? {
+        title: 'स्मार्ट मूल्य पूर्वानुमान',
+        subtitle: 'बाजार और मौसम के आधार पर AI से फसल का मूल्य अनुमान पाएं',
+        unavailable: 'AI सेवा उपलब्ध नहीं है',
+        unavailableMsg: 'AI सेवा अभी उपलब्ध नहीं है। कृपया बाद में पुनः प्रयास करें।',
+        details: 'फसल विवरण दर्ज करें',
+        predict: 'मूल्य अनुमान करें',
+        predicting: 'अनुमान लगाया जा रहा है...',
+        success: 'मूल्य पूर्वानुमान सफलतापूर्वक तैयार हुआ!',
+        failed: 'मूल्य पूर्वानुमान तैयार नहीं हो सका',
+        fetchFailed: 'मूल्य पूर्वानुमान प्राप्त नहीं हो सका। कृपया फिर प्रयास करें।'
+      }
+    : currentLanguage === 'mr'
+      ? {
+          title: 'स्मार्ट किंमत अंदाज',
+          subtitle: 'बाजार आणि हंगामावर आधारित AI किंमत अंदाज मिळवा',
+          unavailable: 'AI सेवा उपलब्ध नाही',
+          unavailableMsg: 'AI सेवा सध्या उपलब्ध नाही. कृपया नंतर पुन्हा प्रयत्न करा.',
+          details: 'पीक तपशील भरा',
+          predict: 'किंमत अंदाज लावा',
+          predicting: 'अंदाज लावला जात आहे...',
+          success: 'किंमत अंदाज यशस्वीरीत्या तयार झाला!',
+          failed: 'किंमत अंदाज तयार झाला नाही',
+          fetchFailed: 'किंमत अंदाज मिळवता आला नाही. कृपया पुन्हा प्रयत्न करा.'
+        }
+      : {
+          title: 'Smart Price Prediction',
+          subtitle: 'Get AI-powered crop price predictions based on market conditions and seasonal data',
+          unavailable: 'AI Service Unavailable',
+          unavailableMsg: 'The AI service is currently unavailable. Please try again later.',
+          details: 'Enter Crop Details',
+          predict: 'Predict Price',
+          predicting: 'Predicting...',
+          success: 'Price prediction generated successfully!',
+          failed: 'Failed to generate price prediction',
+          fetchFailed: 'Failed to fetch price prediction. Please try again.'
+        };
+
+  const formText = currentLanguage === 'hi'
+    ? {
+        cropName: 'फसल का नाम',
+        cropNamePlaceholder: 'उदा., धान, गेहूं, कपास',
+        state: 'राज्य',
+        statePlaceholder: 'उदा., महाराष्ट्र, पंजाब',
+        district: 'जिला',
+        districtPlaceholder: 'उदा., नाशिक, पुणे',
+        quantity: 'मात्रा (किग्रा)',
+        quantityPlaceholder: 'उदा., 100',
+        month: 'महीना',
+        selectMonth: 'महीना चुनें',
+        season: 'मौसम',
+        selectSeason: 'मौसम चुनें',
+        historicalAvgPrice: 'ऐतिहासिक औसत मूल्य (₹/किग्रा)',
+        optional: '(वैकल्पिक)',
+        historicalAvgPricePlaceholder: 'उदा., 50.00',
+      }
+    : currentLanguage === 'mr'
+      ? {
+          cropName: 'पीक नाव',
+          cropNamePlaceholder: 'उदा., तांदूळ, गहू, कापूस',
+          state: 'राज्य',
+          statePlaceholder: 'उदा., महाराष्ट्र, पंजाब',
+          district: 'जिल्हा',
+          districtPlaceholder: 'उदा., नाशिक, पुणे',
+          quantity: 'प्रमाण (कि.ग्रॅ.)',
+          quantityPlaceholder: 'उदा., 100',
+          month: 'महिना',
+          selectMonth: 'महिना निवडा',
+          season: 'हंगाम',
+          selectSeason: 'हंगाम निवडा',
+          historicalAvgPrice: 'ऐतिहासिक सरासरी किंमत (₹/कि.ग्रॅ.)',
+          optional: '(पर्यायी)',
+          historicalAvgPricePlaceholder: 'उदा., 50.00',
+        }
+      : {
+          cropName: 'Crop Name',
+          cropNamePlaceholder: 'e.g., Rice, Wheat, Cotton',
+          state: 'State',
+          statePlaceholder: 'e.g., Maharashtra, Punjab',
+          district: 'District',
+          districtPlaceholder: 'e.g., Nashik, Pune',
+          quantity: 'Quantity (kg)',
+          quantityPlaceholder: 'e.g., 100',
+          month: 'Month',
+          selectMonth: 'Select a month',
+          season: 'Season',
+          selectSeason: 'Select a season',
+          historicalAvgPrice: 'Historical Avg Price (₹/kg)',
+          optional: '(Optional)',
+          historicalAvgPricePlaceholder: 'e.g., 50.00',
+        };
+
+  const monthLabels = currentLanguage === 'hi'
+    ? ['जनवरी', 'फरवरी', 'मार्च', 'अप्रैल', 'मई', 'जून', 'जुलाई', 'अगस्त', 'सितंबर', 'अक्टूबर', 'नवंबर', 'दिसंबर']
+    : currentLanguage === 'mr'
+      ? ['जानेवारी', 'फेब्रुवारी', 'मार्च', 'एप्रिल', 'मे', 'जून', 'जुलै', 'ऑगस्ट', 'सप्टेंबर', 'ऑक्टोबर', 'नोव्हेंबर', 'डिसेंबर']
+      : MONTHS.map((m) => m.label);
+
+  const seasonLabels = currentLanguage === 'hi'
+    ? ['खरीफ', 'रबी', 'ज़ैद', 'सर्दी', 'गर्मी', 'पूरे वर्ष']
+    : currentLanguage === 'mr'
+      ? ['खरीफ', 'रब्बी', 'जायद', 'हिवाळा', 'उन्हाळा', 'पूर्ण वर्ष']
+      : SEASONS;
 
   const { register, handleSubmit, control, formState: { errors }, watch, reset } = useForm({
     resolver: yupResolver(schema),
@@ -182,20 +289,20 @@ export const PricePredictionPage = () => {
       if (response.data.success && response.data.data) {
         setResult(response.data.data);
         setModelVersion(response.data.data.model_version || '1.0');
-        toast.success('Price prediction generated successfully!');
+        toast.success(text.success);
       } else if (response.data.fallback) {
         setIsFallback(true);
-        toast.error('AI service is currently unavailable. Please try again later.', {
+        toast.error(text.unavailableMsg, {
           duration: 5000
         });
       } else {
-        toast.error('Failed to generate price prediction', {
+        toast.error(text.failed, {
           duration: 5000
         });
       }
     } catch (error) {
       console.error('Price prediction error:', error);
-      const errorMsg = error.response?.data?.message || 'Failed to fetch price prediction. Please try again.';
+      const errorMsg = error.response?.data?.message || text.fetchFailed;
       toast.error(errorMsg, {
         duration: 5000
       });
@@ -217,10 +324,10 @@ export const PricePredictionPage = () => {
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
             <TrendingUp className="w-10 h-10 text-green-600" />
-            Smart Price Prediction
+            {text.title}
           </h1>
           <p className="text-gray-600 text-lg">
-            Get AI-powered crop price predictions based on market conditions and seasonal data
+            {text.subtitle}
           </p>
         </div>
 
@@ -229,9 +336,9 @@ export const PricePredictionPage = () => {
           <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start gap-3">
             <AlertCircle className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold text-yellow-800">AI Service Unavailable</p>
+              <p className="font-semibold text-yellow-800">{text.unavailable}</p>
               <p className="text-sm text-yellow-700">
-                The AI service is currently unavailable. Please try again later.
+                {text.unavailableMsg}
               </p>
             </div>
           </div>
@@ -239,18 +346,18 @@ export const PricePredictionPage = () => {
 
         {/* Form Card */}
         <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">Enter Crop Details</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">{text.details}</h2>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* Crop Name & State - Row 1 */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Crop Name <span className="text-red-500">*</span>
+                  {formText.cropName} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g., Rice, Wheat, Cotton"
+                  placeholder={formText.cropNamePlaceholder}
                   {...register('cropName')}
                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition ${
                     errors.cropName ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
@@ -263,11 +370,11 @@ export const PricePredictionPage = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  State <span className="text-red-500">*</span>
+                  {formText.state} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g., Maharashtra, Punjab"
+                  placeholder={formText.statePlaceholder}
                   {...register('state')}
                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition ${
                     errors.state ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
@@ -283,11 +390,11 @@ export const PricePredictionPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  District <span className="text-red-500">*</span>
+                  {formText.district} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g., Nashik, Pune"
+                  placeholder={formText.districtPlaceholder}
                   {...register('district')}
                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition ${
                     errors.district ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
@@ -300,11 +407,11 @@ export const PricePredictionPage = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Quantity (kg) <span className="text-red-500">*</span>
+                  {formText.quantity} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
-                  placeholder="e.g., 100"
+                  placeholder={formText.quantityPlaceholder}
                   min="1"
                   step="0.01"
                   {...register('quantity')}
@@ -322,7 +429,7 @@ export const PricePredictionPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Month <span className="text-red-500">*</span>
+                  {formText.month} <span className="text-red-500">*</span>
                 </label>
                 <select
                   {...register('month')}
@@ -331,10 +438,10 @@ export const PricePredictionPage = () => {
                   }`}
                   defaultValue=""
                 >
-                  <option value="">Select a month</option>
+                  <option value="">{formText.selectMonth}</option>
                   {MONTHS.map((month) => (
                     <option key={month.value} value={month.value}>
-                      {month.label}
+                      {monthLabels[month.value - 1] || month.label}
                     </option>
                   ))}
                 </select>
@@ -345,7 +452,7 @@ export const PricePredictionPage = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Season <span className="text-red-500">*</span>
+                  {formText.season} <span className="text-red-500">*</span>
                 </label>
                 <select
                   {...register('season')}
@@ -354,10 +461,10 @@ export const PricePredictionPage = () => {
                   }`}
                   defaultValue=""
                 >
-                  <option value="">Select a season</option>
-                  {SEASONS.map((season) => (
+                  <option value="">{formText.selectSeason}</option>
+                  {SEASONS.map((season, idx) => (
                     <option key={season} value={season}>
-                      {season}
+                      {seasonLabels[idx] || season}
                     </option>
                   ))}
                 </select>
@@ -370,11 +477,11 @@ export const PricePredictionPage = () => {
             {/* Historical Avg Price - Row 4 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Historical Avg Price (₹/kg) <span className="text-gray-400 text-xs ml-1">(Optional)</span>
+                {formText.historicalAvgPrice} <span className="text-gray-400 text-xs ml-1">{formText.optional}</span>
               </label>
               <input
                 type="number"
-                placeholder="e.g., 50.00"
+                placeholder={formText.historicalAvgPricePlaceholder}
                 min="0"
                 step="0.01"
                 {...register('historicalAvgPrice')}
@@ -399,7 +506,7 @@ export const PricePredictionPage = () => {
                 }`}
               >
                 {loading && <LoadingSpinner size="sm" className="flex items-center justify-center" />}
-                {loading ? 'Predicting...' : 'Predict Price'}
+                {loading ? text.predicting : text.predict}
               </button>
             </div>
           </form>

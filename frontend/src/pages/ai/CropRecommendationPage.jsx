@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { Sprout, AlertCircle } from 'lucide-react';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import api from '../../api/axiosConfig';
+import { useLanguage } from '../../context/LanguageContext';
 
 const SOIL_TYPES = [
   {
@@ -67,9 +68,87 @@ const rankBadge = (index) => {
 };
 
 export const CropRecommendationPage = () => {
+  const { currentLanguage } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [isFallback, setIsFallback] = useState(false);
+
+  const text = currentLanguage === 'hi'
+    ? {
+        title: 'फसल सिफारिश',
+        subtitle: 'अपनी मिट्टी के आधार पर AI से फसल सुझाव प्राप्त करें',
+        unavailable: 'AI सेवा उपलब्ध नहीं है',
+        unavailableMsg: 'AI सेवा अभी उपलब्ध नहीं है। कृपया बाद में पुनः प्रयास करें।',
+        recommend: 'फसल सुझाएं',
+        recommending: 'सुझाव तैयार किए जा रहे हैं...',
+        success: 'फसल सिफारिश सफलतापूर्वक तैयार हुई!',
+        failed: 'फसल सिफारिश तैयार नहीं हो सकी'
+      }
+    : currentLanguage === 'mr'
+      ? {
+          title: 'पीक शिफारस',
+          subtitle: 'मातीच्या प्रकारानुसार AI पीक शिफारसी मिळवा',
+          unavailable: 'AI सेवा उपलब्ध नाही',
+          unavailableMsg: 'AI सेवा सध्या उपलब्ध नाही. कृपया नंतर पुन्हा प्रयत्न करा.',
+          recommend: 'पीक सुचवा',
+          recommending: 'शिफारसी तयार होत आहेत...',
+          success: 'पीक शिफारसी यशस्वीरीत्या तयार झाल्या!',
+          failed: 'पीक शिफारसी तयार झाल्या नाहीत'
+        }
+      : {
+          title: 'Crop Recommendation',
+          subtitle: 'Select your soil profile and get AI-powered crop suggestions.',
+          unavailable: 'AI Service Unavailable',
+          unavailableMsg: 'AI service is currently unavailable. Please try again later.',
+          recommend: 'Recommend Crops',
+          recommending: 'Recommending...',
+          success: 'Crop recommendations generated successfully!',
+          failed: 'Failed to generate crop recommendations.'
+        };
+
+  const formText = currentLanguage === 'hi'
+    ? {
+        selectSoil: 'मिट्टी का प्रकार चुनें',
+        showTop: 'शीर्ष',
+        recommendations: 'सिफारिशें दिखाएं',
+      }
+    : currentLanguage === 'mr'
+      ? {
+          selectSoil: 'मातीचा प्रकार निवडा',
+          showTop: 'शीर्ष',
+          recommendations: 'शिफारसी दाखवा',
+        }
+      : {
+          selectSoil: 'Select Soil Type',
+          showTop: 'Show top',
+          recommendations: 'recommendations',
+        };
+
+  const localizedSoils = SOIL_TYPES.map((soil) => {
+    if (currentLanguage === 'hi') {
+      const map = {
+        loamy: { name: 'दोमट', description: 'अधिकांश फसलों के लिए उत्तम' },
+        clay: { name: 'चिकनी', description: 'पानी रोकने वाली, घनी' },
+        sandy: { name: 'बलुई', description: 'जल्दी पानी छोड़ती है, हल्की' },
+        silt: { name: 'गाद', description: 'उपजाऊ और मुलायम' },
+        black: { name: 'काली', description: 'पोषक तत्वों से भरपूर' },
+        red: { name: 'लाल', description: 'लौह युक्त, अच्छी जल निकासी' },
+      };
+      return { ...soil, ...(map[soil.value] || {}) };
+    }
+    if (currentLanguage === 'mr') {
+      const map = {
+        loamy: { name: 'दोमट', description: 'बहुतेक पिकांसाठी सर्वोत्तम' },
+        clay: { name: 'चिकण', description: 'पाणी धरून ठेवते, दाट' },
+        sandy: { name: 'वालुकामय', description: 'लवकर निचरा, हलकी' },
+        silt: { name: 'गाळयुक्त', description: 'सुपीक आणि मऊ' },
+        black: { name: 'काळी', description: 'पोषकद्रव्यांनी समृद्ध' },
+        red: { name: 'लाल', description: 'लोहयुक्त, चांगला निचरा' },
+      };
+      return { ...soil, ...(map[soil.value] || {}) };
+    }
+    return soil;
+  });
 
   const {
     setValue,
@@ -113,15 +192,15 @@ export const CropRecommendationPage = () => {
 
       if (response.data?.success) {
         setResult(response.data);
-        toast.success('Crop recommendations generated successfully!');
+        toast.success(text.success);
       } else if (response.data?.fallback) {
         setIsFallback(true);
-        toast.error('AI service is currently unavailable. Please try again later.');
+        toast.error(text.unavailableMsg);
       } else {
-        toast.error('Failed to generate crop recommendations.');
+        toast.error(text.failed);
       }
     } catch (error) {
-      const message = error.response?.data?.message || 'Failed to generate crop recommendations.';
+      const message = error.response?.data?.message || text.failed;
       toast.error(message);
     } finally {
       setLoading(false);
@@ -134,10 +213,10 @@ export const CropRecommendationPage = () => {
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
             <Sprout className="w-10 h-10 text-green-600" />
-            Crop Recommendation
+            {text.title}
           </h1>
           <p className="text-gray-600 text-lg">
-            Select your soil profile and get AI-powered crop suggestions.
+            {text.subtitle}
           </p>
         </div>
 
@@ -145,9 +224,9 @@ export const CropRecommendationPage = () => {
           <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start gap-3">
             <AlertCircle className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold text-yellow-800">AI Service Unavailable</p>
+              <p className="font-semibold text-yellow-800">{text.unavailable}</p>
               <p className="text-sm text-yellow-700">
-                AI service is currently unavailable. Please try again later.
+                {text.unavailableMsg}
               </p>
             </div>
           </div>
@@ -157,10 +236,10 @@ export const CropRecommendationPage = () => {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">
-                Select Soil Type <span className="text-red-500">*</span>
+                {formText.selectSoil} <span className="text-red-500">*</span>
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {SOIL_TYPES.map((soil) => {
+                {localizedSoils.map((soil) => {
                   const selected = soilType === soil.value;
                   return (
                     <button
@@ -187,7 +266,7 @@ export const CropRecommendationPage = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Show top {topK} recommendations
+                {formText.showTop} {topK} {formText.recommendations}
               </label>
               <input
                 type="range"
@@ -215,7 +294,7 @@ export const CropRecommendationPage = () => {
               }`}
             >
               {loading && <LoadingSpinner size="sm" className="flex items-center justify-center" />}
-              {loading ? 'Recommending...' : 'Recommend Crops'}
+              {loading ? text.recommending : text.recommend}
             </button>
           </form>
         </div>

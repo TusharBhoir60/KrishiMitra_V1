@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { Upload, AlertCircle, Lightbulb, CheckCircle2, AlertTriangle, XCircle, RotateCcw } from 'lucide-react';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import api from '../../api/axiosConfig';
+import { useLanguage } from '../../context/LanguageContext';
 
 const ACCEPTED_FORMATS = ['image/jpeg', 'image/png', 'image/webp'];
 const ACCEPTED_LABELS = 'JPEG, PNG, WebP';
@@ -167,6 +168,7 @@ const RecommendationsSection = ({ recommendations }) => {
 };
 
 export const QualityAnalysisPage = () => {
+  const { currentLanguage } = useLanguage();
   const [file, setFile] = useState(null);
   const [fileError, setFileError] = useState('');
   const [preview, setPreview] = useState(null);
@@ -184,6 +186,78 @@ export const QualityAnalysisPage = () => {
   });
 
   const cropName = watch('cropName');
+
+  const text = currentLanguage === 'hi'
+    ? {
+        title: 'गुणवत्ता विश्लेषण',
+        subtitle: 'कंप्यूटर विज़न से फसल गुणवत्ता का AI विश्लेषण',
+        unavailable: 'AI सेवा उपलब्ध नहीं है',
+        unavailableMsg: 'AI सेवा अभी उपलब्ध नहीं है। कृपया बाद में पुनः प्रयास करें।',
+        uploadTitle: 'फसल की छवि अपलोड करें',
+        analyze: 'गुणवत्ता विश्लेषण करें',
+        analyzing: 'विश्लेषण किया जा रहा है...',
+        reset: 'रीसेट',
+        analyzingMsg: 'छवि का विश्लेषण किया जा रहा है, कृपया प्रतीक्षा करें... (28 सेकंड तक)',
+        success: 'गुणवत्ता विश्लेषण सफलतापूर्वक पूरा हुआ!',
+        failed: 'छवि गुणवत्ता विश्लेषण विफल रहा',
+        fetchFailed: 'छवि का विश्लेषण नहीं हो सका। कृपया फिर प्रयास करें।'
+      }
+    : currentLanguage === 'mr'
+      ? {
+          title: 'गुणवत्ता विश्लेषण',
+          subtitle: 'कंप्युटर व्हिजनवर आधारित AI पीक गुणवत्ता विश्लेषण',
+          unavailable: 'AI सेवा उपलब्ध नाही',
+          unavailableMsg: 'AI सेवा सध्या उपलब्ध नाही. कृपया नंतर पुन्हा प्रयत्न करा.',
+          uploadTitle: 'पीक प्रतिमा अपलोड करा',
+          analyze: 'गुणवत्ता तपासा',
+          analyzing: 'विश्लेषण सुरू आहे...',
+          reset: 'रीसेट',
+          analyzingMsg: 'प्रतिमा विश्लेषित केली जात आहे, कृपया थांबा... (28 सेकंदांपर्यंत)',
+          success: 'गुणवत्ता विश्लेषण यशस्वीरीत्या पूर्ण झाले!',
+          failed: 'प्रतिमेची गुणवत्ता तपासता आली नाही',
+          fetchFailed: 'प्रतिमेचे विश्लेषण करता आले नाही. कृपया पुन्हा प्रयत्न करा.'
+        }
+      : {
+          title: 'Quality Analysis',
+          subtitle: 'AI-powered crop quality detection using computer vision analysis',
+          unavailable: 'AI Service Unavailable',
+          unavailableMsg: 'The AI service is currently unavailable. Please try again later.',
+          uploadTitle: 'Upload Crop Image',
+          analyze: 'Analyze Quality',
+          analyzing: 'Analyzing...',
+          reset: 'Reset',
+          analyzingMsg: 'Analyzing image, please wait... (up to 28 seconds)',
+          success: 'Quality analysis completed successfully!',
+          failed: 'Failed to analyze image quality',
+          fetchFailed: 'Failed to analyze image. Please try again.'
+        };
+
+  const formText = currentLanguage === 'hi'
+    ? {
+        cropImage: 'फसल की छवि',
+        dragOrBrowse: 'छवि को यहां खींचें या चुनने के लिए क्लिक करें',
+        maxLabel: 'अधिकतम 5MB',
+        cropName: 'फसल का नाम',
+        optional: '(वैकल्पिक)',
+        cropNamePlaceholder: 'उदा., टमाटर, सेब, आम',
+      }
+    : currentLanguage === 'mr'
+      ? {
+          cropImage: 'पीक प्रतिमा',
+          dragOrBrowse: 'प्रतिमा येथे ड्रॅग करा किंवा निवडण्यासाठी क्लिक करा',
+          maxLabel: 'कमाल 5MB',
+          cropName: 'पीक नाव',
+          optional: '(पर्यायी)',
+          cropNamePlaceholder: 'उदा., टोमॅटो, सफरचंद, आंबा',
+        }
+      : {
+          cropImage: 'Crop Image',
+          dragOrBrowse: 'Drag image here or click to browse',
+          maxLabel: 'Max 5MB',
+          cropName: 'Crop Name',
+          optional: '(Optional)',
+          cropNamePlaceholder: 'e.g., Tomato, Apple, Mango',
+        };
 
   const validateFile = async (selectedFile) => {
     setFileError('');
@@ -285,20 +359,20 @@ export const QualityAnalysisPage = () => {
       if (response.data.success && response.data.data) {
         setResult(response.data.data);
         setModelVersion(response.data.data.model_version || '1.0');
-        toast.success('Quality analysis completed successfully!');
+        toast.success(text.success);
       } else if (response.data.fallback) {
         setIsFallback(true);
-        toast.error('AI service is currently unavailable. Please try again later.', {
+        toast.error(text.unavailableMsg, {
           duration: 5000
         });
       } else {
-        toast.error('Failed to analyze image quality', {
+        toast.error(text.failed, {
           duration: 5000
         });
       }
     } catch (error) {
       console.error('Quality analysis error:', error);
-      const errorMsg = error.response?.data?.message || 'Failed to analyze image. Please try again.';
+      const errorMsg = error.response?.data?.message || text.fetchFailed;
       toast.error(errorMsg, {
         duration: 5000
       });
@@ -325,10 +399,10 @@ export const QualityAnalysisPage = () => {
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
             <CheckCircle2 className="w-10 h-10 text-green-600" />
-            Quality Analysis
+            {text.title}
           </h1>
           <p className="text-gray-600 text-lg">
-            AI-powered crop quality detection using computer vision analysis
+            {text.subtitle}
           </p>
         </div>
 
@@ -337,9 +411,9 @@ export const QualityAnalysisPage = () => {
           <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start gap-3">
             <AlertCircle className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold text-yellow-800">AI Service Unavailable</p>
+              <p className="font-semibold text-yellow-800">{text.unavailable}</p>
               <p className="text-sm text-yellow-700">
-                The AI service is currently unavailable. Please try again later.
+                {text.unavailableMsg}
               </p>
             </div>
           </div>
@@ -347,13 +421,13 @@ export const QualityAnalysisPage = () => {
 
         {/* Form Card */}
         <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">Upload Crop Image</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">{text.uploadTitle}</h2>
 
           <form onSubmit={onSubmit} className="space-y-6">
             {/* Upload Zone */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Crop Image <span className="text-red-500">*</span>
+                {formText.cropImage} <span className="text-red-500">*</span>
               </label>
               <div
                 ref={dropZoneRef}
@@ -388,9 +462,9 @@ export const QualityAnalysisPage = () => {
                   <div className="flex flex-col items-center gap-3">
                     <Upload className="w-12 h-12 text-green-600" />
                     <div className="text-center">
-                      <p className="font-semibold text-gray-900">Drag image here or click to browse</p>
+                      <p className="font-semibold text-gray-900">{formText.dragOrBrowse}</p>
                       <p className="text-sm text-gray-500 mt-1">
-                        {ACCEPTED_LABELS} • Max 5MB
+                        {ACCEPTED_LABELS} • {formText.maxLabel}
                       </p>
                     </div>
                   </div>
@@ -408,11 +482,11 @@ export const QualityAnalysisPage = () => {
             {/* Crop Name */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Crop Name <span className="text-gray-400 text-xs ml-1">(Optional)</span>
+                {formText.cropName} <span className="text-gray-400 text-xs ml-1">{formText.optional}</span>
               </label>
               <input
                 type="text"
-                placeholder="e.g., Tomato, Apple, Mango"
+                placeholder={formText.cropNamePlaceholder}
                 {...register('cropName')}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition"
                 disabled={loading}
@@ -431,7 +505,7 @@ export const QualityAnalysisPage = () => {
                 }`}
               >
                 {loading && <LoadingSpinner size="sm" className="flex items-center justify-center" />}
-                {loading ? 'Analyzing...' : 'Analyze Quality'}
+                {loading ? text.analyzing : text.analyze}
               </button>
               {(file || result) && (
                 <button
@@ -441,7 +515,7 @@ export const QualityAnalysisPage = () => {
                   className="py-3 px-6 rounded-lg font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition border border-gray-300 flex items-center gap-2"
                 >
                   <RotateCcw className="w-5 h-5" />
-                  Reset
+                  {text.reset}
                 </button>
               )}
             </div>
@@ -450,7 +524,7 @@ export const QualityAnalysisPage = () => {
             {loading && (
               <div className="flex items-center gap-2 text-green-700 bg-green-50 p-4 rounded-lg">
                 <LoadingSpinner size="sm" className="flex items-center justify-center" />
-                <span className="font-medium">Analyzing image, please wait... (up to 28 seconds)</span>
+                <span className="font-medium">{text.analyzingMsg}</span>
               </div>
             )}
           </form>

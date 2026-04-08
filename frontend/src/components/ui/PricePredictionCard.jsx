@@ -25,7 +25,7 @@ export const PricePredictionCard = ({ cropName, district, userPrice }) => {
             confidence: 85
           });
         }
-      } catch (err) {
+      } catch {
         setPrediction({
             predictedPrice: userPrice ? Number(userPrice) : 25,
             min: userPrice ? Math.floor(Number(userPrice) * 0.8) : 20,

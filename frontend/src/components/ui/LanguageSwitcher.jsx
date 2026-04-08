@@ -1,7 +1,9 @@
+import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../../context/LanguageContext';
 
 export const LanguageSwitcher = () => {
-  const { currentLanguage, setLanguage, t } = useLanguage();
+  const { currentLanguage, setLanguage } = useLanguage();
+  const { t } = useTranslation();
 
   return (
     <div className="flex items-center gap-2 border border-farm-gold/60 rounded-full px-3 py-1.5 bg-white/90">

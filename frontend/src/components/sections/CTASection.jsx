@@ -4,7 +4,9 @@ import { useLanguage } from '../../context/LanguageContext';
 
 export const CTASection = () => {
   const { t } = useLanguage();
-  const cta = t('cta');
+  const cta = t('cta', { returnObjects: true }) || {};
+  const farmerCard = cta.farmerCard || {};
+  const buyerCard = cta.buyerCard || {};
   const navigate = useNavigate();
 
   return (
@@ -38,10 +40,10 @@ export const CTASection = () => {
 
       <div className="relative z-10 w-full max-w-5xl mx-auto flex flex-col items-center">
         <h2 className="font-display text-5xl lg:text-7xl text-white text-center max-w-4xl tracking-tight leading-tight">
-          {cta.title}
+          {cta.title || ''}
         </h2>
         <p className="font-body text-xl text-farm-light text-center mt-6 mb-16 max-w-2xl">
-          {cta.subtitle}
+          {cta.subtitle || ''}
         </p>
 
         <div className="flex flex-col sm:flex-row gap-8 justify-center items-stretch w-full">
@@ -59,10 +61,10 @@ export const CTASection = () => {
             >
               🌾
             </motion.div>
-            <h3 className="font-display text-2xl text-farm-dark font-bold mb-3">{cta.farmerCard.title}</h3>
-            <p className="font-body text-farm-dark/80 mb-8 flex-1">{cta.farmerCard.desc}</p>
+            <h3 className="font-display text-2xl text-farm-dark font-bold mb-3">{farmerCard.title || ''}</h3>
+            <p className="font-body text-farm-dark/80 mb-8 flex-1">{farmerCard.desc || ''}</p>
             <button className="bg-farm-green text-white w-full rounded-xl py-4 font-body font-bold text-lg hover:bg-farm-dark transition-colors">
-              {cta.farmerCard.btn}
+              {farmerCard.btn || ''}
             </button>
           </motion.div>
 
@@ -80,10 +82,10 @@ export const CTASection = () => {
             >
               🛒
             </motion.div>
-            <h3 className="font-display text-2xl text-white font-bold mb-3">{cta.buyerCard.title}</h3>
-            <p className="font-body text-white/80 mb-8 flex-1">{cta.buyerCard.desc}</p>
+            <h3 className="font-display text-2xl text-white font-bold mb-3">{buyerCard.title || ''}</h3>
+            <p className="font-body text-white/80 mb-8 flex-1">{buyerCard.desc || ''}</p>
             <button className="bg-white text-farm-green w-full rounded-xl py-4 font-body font-bold text-lg hover:bg-farm-gold hover:text-farm-dark transition-colors">
-              {cta.buyerCard.btn}
+              {buyerCard.btn || ''}
             </button>
           </motion.div>
         </div>

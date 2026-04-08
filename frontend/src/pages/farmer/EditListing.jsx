@@ -1,6 +1,4 @@
-import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
 import { Edit2, Save, Trash2 } from 'lucide-react';
 
 export const EditListing = () => {

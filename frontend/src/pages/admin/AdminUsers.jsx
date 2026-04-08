@@ -12,7 +12,7 @@ export const AdminUsers = () => {
     try {
       const res = await adminApi.getUsers();
       setUsers(res.data?.data || []);
-    } catch (e) {
+    } catch {
       toast.error('Failed to load users');
     } finally {
       setLoading(false);
@@ -26,7 +26,7 @@ export const AdminUsers = () => {
       await adminApi.verifyUser(id, { isVerified: !currentStatus });
       toast.success('User verification updated');
       fetchUsers();
-    } catch (e) {
+    } catch {
       toast.error('Failed update');
     }
   };
