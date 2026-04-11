@@ -14,6 +14,11 @@ const resolveLanguageFromBackend = (value) => {
 };
 
 const resolveInitialLanguage = () => {
+  const fromStorage = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+  if (SUPPORTED_LANGUAGES.includes(fromStorage)) {
+    return fromStorage;
+  }
+
   try {
     const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
     const backendDefault = resolveLanguageFromBackend(storedUser?.language);
@@ -22,32 +27,51 @@ const resolveInitialLanguage = () => {
     // Ignore invalid localStorage user payload and continue fallback.
   }
 
-  const fromStorage = localStorage.getItem(LANGUAGE_STORAGE_KEY);
-  return resolveLanguage(fromStorage || i18n.language);
+  return resolveLanguage(i18n.language);
 };
 
 export const LanguageProvider = ({ children }) => {
   const userLanguage = useSelector((state) => state.auth.user?.language);
   const [currentLanguage, setCurrentLanguage] = useState(resolveInitialLanguage);
 
-  const setLanguage = useCallback((languageCode) => {
+  const setLanguage = useCallback(async (languageCode) => {
     const nextLanguage = resolveLanguage(languageCode);
-    setCurrentLanguage((prevLanguage) => (prevLanguage === nextLanguage ? prevLanguage : nextLanguage));
+    if (resolveLanguage(i18n.resolvedLanguage || i18n.language) === nextLanguage) {
+      localStorage.setItem(LANGUAGE_STORAGE_KEY, nextLanguage);
+      return;
+    }
+
+    await i18n.changeLanguage(nextLanguage);
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, nextLanguage);
   }, []);
 
   useEffect(() => {
-    i18n.changeLanguage(currentLanguage);
-    localStorage.setItem(LANGUAGE_STORAGE_KEY, currentLanguage);
-  }, [currentLanguage]);
+    const syncLanguage = (languageCode) => {
+      const normalized = resolveLanguage(languageCode);
+      setCurrentLanguage((prevLanguage) => (prevLanguage === normalized ? prevLanguage : normalized));
+    };
+
+    syncLanguage(i18n.resolvedLanguage || i18n.language);
+    i18n.on('languageChanged', syncLanguage);
+
+    return () => {
+      i18n.off('languageChanged', syncLanguage);
+    };
+  }, []);
 
   useEffect(() => {
     const preferredLanguage = resolveLanguageFromBackend(userLanguage);
-    if (preferredLanguage) {
+    const hasStoredPreference = SUPPORTED_LANGUAGES.includes(
+      localStorage.getItem(LANGUAGE_STORAGE_KEY)
+    );
+
+    // Use backend language only as a first-time default. Do not override explicit user choice.
+    if (preferredLanguage && !hasStoredPreference) {
       setLanguage(preferredLanguage);
     }
   }, [userLanguage, setLanguage]);
 
-  const t = useCallback((key, options) => i18n.t(key, options), []);
+  const t = useCallback((key, options) => i18n.t(key, options), [currentLanguage]);
 
   return (
     <LanguageContext.Provider value={{ currentLanguage, setLanguage, t, lang: currentLanguage }}>

@@ -119,7 +119,9 @@ const connectDB = async () => {
 ### Cloudinary Setup
 Configure Cloudinary credentials in your `.env` file:
 ```
-CLOUDINARY_NAME=your_cloud_name
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+# or, for older setups:
+# CLOUDINARY_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
 ```
@@ -289,7 +291,8 @@ REFRESH_TOKEN_SECRET=your_refresh_token_secret
 REFRESH_TOKEN_EXPIRY=30d
 
 # Cloudinary Configuration
-CLOUDINARY_NAME=your_cloudinary_name
+CLOUDINARY_CLOUD_NAME=your_cloudinary_name
+# CLOUDINARY_NAME=your_cloudinary_name
 CLOUDINARY_API_KEY=your_cloudinary_api_key
 CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 

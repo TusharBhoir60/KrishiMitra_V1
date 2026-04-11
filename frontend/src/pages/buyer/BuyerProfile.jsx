@@ -9,9 +9,11 @@ import { logout, updateUser } from '../../store/slices/authSlice';
 import { authApi } from '../../api/endpoints/authApi';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { useLanguage } from '../../context/LanguageContext';
 
 export const BuyerProfile = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
@@ -49,29 +51,43 @@ export const BuyerProfile = () => {
   };
 
   const displayName = user?.name || user?.fullName || '?';
+  const businessLabel = user?.businessType || t('buyer.profile.businessType');
+  const locationLabel = [user?.location?.district, user?.location?.state].filter(Boolean).join(', ');
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 md:pb-8">
+    <div className="min-h-screen bg-gradient-to-b from-[#eef5ff] via-white to-[#f8fafc] pb-20 md:pb-8">
 
       {/* Hero banner */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-500 px-6 py-10 md:px-10 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 80% 50%, white 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+      <div className="relative overflow-hidden bg-gradient-to-r from-[#1d4ed8] via-[#2563eb] to-[#0f766e] px-6 py-10 md:px-10">
+        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 20% 20%, white 1px, transparent 1px)', backgroundSize: '22px 22px' }} />
         <div className="relative flex items-center gap-5">
-          <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center text-white text-3xl font-display font-bold border-2 border-white/30 shadow-lg">
+          <div className="flex h-22 w-22 items-center justify-center rounded-[1.5rem] border-2 border-white/25 bg-white/15 text-3xl font-display font-bold text-white shadow-lg backdrop-blur-sm">
             {displayName.charAt(0)}
           </div>
-          <div>
-            <p className="text-blue-100 text-xs font-semibold uppercase tracking-widest mb-0.5">Buyer Profile</p>
+          <div className="min-w-0">
+            <p className="text-blue-100 text-xs font-semibold uppercase tracking-widest mb-0.5">{t('buyer.profile.title')}</p>
             <h1 className="text-2xl font-display font-bold text-white">{displayName}</h1>
             <div className="flex items-center gap-3 mt-1.5">
               {user?.phone && (
-                <span className="flex items-center gap-1 text-blue-100 text-xs">
+                <span className="flex items-center gap-1 text-blue-50 text-xs">
                   <Phone size={11} /> {user.phone}
                 </span>
               )}
-              {user?.location?.district && (
-                <span className="flex items-center gap-1 text-blue-100 text-xs">
-                  <MapPin size={11} /> {user.location.district}
+              {locationLabel && (
+                <span className="flex items-center gap-1 text-blue-50 text-xs">
+                  <MapPin size={11} /> {locationLabel}
+                </span>
+              )}
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {businessLabel && (
+                <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm">
+                  {businessLabel}
+                </span>
+              )}
+              {user?.businessName && (
+                <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm">
+                  {user.businessName}
                 </span>
               )}
             </div>
@@ -79,31 +95,31 @@ export const BuyerProfile = () => {
           {!editing && (
             <button
               onClick={() => setEditing(true)}
-              className="ml-auto flex items-center gap-1.5 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors border border-white/20"
+              className="ml-auto flex items-center gap-1.5 rounded-full border border-white/20 bg-white/15 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm transition-colors hover:bg-white/25"
             >
-              <Edit3 size={15} /> Edit
+              <Edit3 size={15} /> {t('buyer.profile.edit')}
             </button>
           )}
         </div>
 
         {user?.isVerified && (
-          <div className="relative mt-4 inline-flex items-center gap-1.5 bg-white/20 px-3 py-1 rounded-full text-white text-xs font-semibold">
-            <ShieldCheck size={13} /> Verified
+          <div className="relative mt-4 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm">
+            <ShieldCheck size={13} /> {t('farmer.dashboard.verified')}
           </div>
         )}
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 space-y-5">
+      <div className="mx-auto max-w-3xl px-4 py-6 space-y-5 sm:px-6">
 
         {/* Quick stats */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {[
             { icon: ShoppingCart, label: 'Orders', value: user?.orderCount ?? '–' },
             { icon: Star, label: 'Rating', value: user?.rating > 0 ? `${user.rating}★` : '–' },
             { icon: FileText, label: 'Rank', value: user?.rank || 'Member' },
           ].map(s => (
-            <div key={s.label} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 text-center">
-              <s.icon size={20} className="text-blue-600 mx-auto mb-1.5" />
+            <div key={s.label} className="rounded-2xl border border-blue-100 bg-white p-4 text-center shadow-sm">
+              <s.icon size={20} className="mx-auto mb-1.5 text-blue-600" />
               <p className="text-lg font-bold text-farm-dark">{s.value}</p>
               <p className="text-xs text-gray-500">{s.label}</p>
             </div>
@@ -111,22 +127,22 @@ export const BuyerProfile = () => {
         </div>
 
         {/* Profile Info Card */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="overflow-hidden rounded-3xl border border-blue-100 bg-white shadow-sm">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h2 className="font-bold text-farm-dark text-sm">Personal Information</h2>
+            <h2 className="font-bold text-farm-dark text-sm">{t('buyer.profile.personalInfo')}</h2>
             {editing && (
               <div className="flex gap-2">
                 <button
                   onClick={() => setEditing(false)}
                   className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg text-xs font-medium transition-colors"
                 >
-                  <X size={13} /> Cancel
+                  <X size={13} /> {t('common.cancel')}
                 </button>
                 <button
                   onClick={handleSave}
                   className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition-colors"
                 >
-                  <Save size={13} /> Save
+                  <Save size={13} /> {t('common.save')}
                 </button>
               </div>
             )}
@@ -134,12 +150,12 @@ export const BuyerProfile = () => {
 
           <div className="divide-y divide-gray-50">
             {[
-              { label: 'Full Name', icon: User, field: 'name', type: 'text' },
-              { label: 'Phone', icon: Phone, field: 'phone', type: 'tel' },
-              { label: 'Business Name', icon: FileText, field: 'businessName', type: 'text' },
-              { label: 'Business Type', icon: FileText, field: 'businessType', type: 'text', placeholder: 'e.g., Restaurant, Retailer' },
-              { label: 'District', icon: MapPin, field: 'district', type: 'text' },
-              { label: 'State', icon: MapPin, field: 'state', type: 'text' },
+              { label: t('buyer.profile.fullName'), icon: User, field: 'name', type: 'text' },
+              { label: t('buyer.profile.phone'), icon: Phone, field: 'phone', type: 'tel' },
+              { label: t('buyer.profile.businessName'), icon: FileText, field: 'businessName', type: 'text' },
+              { label: t('buyer.profile.businessType'), icon: FileText, field: 'businessType', type: 'text', placeholder: 'e.g., Restaurant, Retailer' },
+              { label: t('buyer.profile.district'), icon: MapPin, field: 'district', type: 'text' },
+              { label: t('buyer.profile.state'), icon: MapPin, field: 'state', type: 'text' },
             ].map(({ label, icon, field, type, placeholder }) => (
               <div key={field} className="flex items-center px-6 py-4 gap-4">
                 {createElement(icon, { size: 17, className: 'text-gray-400 shrink-0' })}
@@ -151,11 +167,11 @@ export const BuyerProfile = () => {
                       value={form[field]}
                       placeholder={placeholder || label}
                       onChange={e => setForm(f => ({ ...f, [field]: e.target.value }))}
-                      className="w-full text-sm font-medium text-farm-dark bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600 transition"
+                      className="w-full rounded-lg border border-gray-200 bg-blue-50/30 px-3 py-1.5 text-sm font-medium text-farm-dark transition focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600/30"
                     />
                   ) : (
                     <p className="text-sm font-medium text-farm-dark">
-                      {form[field] || <span className="text-gray-400 italic">Not provided</span>}
+                      {form[field] || <span className="text-gray-400 italic">{t('buyer.profile.notProvided')}</span>}
                     </p>
                   )}
                 </div>
@@ -166,18 +182,18 @@ export const BuyerProfile = () => {
             <div className="flex items-start px-6 py-4 gap-4">
               <MapPin size={17} className="text-gray-400 shrink-0 mt-1" />
               <div className="flex-1">
-                <p className="text-xs text-gray-400 mb-0.5">Delivery Address</p>
+                <p className="text-xs text-gray-400 mb-0.5">{t('buyer.profile.deliveryAddress')}</p>
                 {editing ? (
                   <textarea
                     rows={3}
                     value={form.deliveryAddress}
                     placeholder="Your primary delivery address..."
                     onChange={e => setForm(f => ({ ...f, deliveryAddress: e.target.value }))}
-                    className="w-full text-sm font-medium text-farm-dark bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600 transition resize-none"
+                    className="w-full resize-none rounded-lg border border-gray-200 bg-blue-50/30 px-3 py-1.5 text-sm font-medium text-farm-dark transition focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600/30"
                   />
                 ) : (
                   <p className="text-sm text-farm-dark">
-                    {form.deliveryAddress || <span className="text-gray-400 italic">Not provided</span>}
+                    {form.deliveryAddress || <span className="text-gray-400 italic">{t('buyer.profile.noDeliveryAddress')}</span>}
                   </p>
                 )}
               </div>
@@ -186,20 +202,20 @@ export const BuyerProfile = () => {
         </div>
 
         {/* Settings links */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="overflow-hidden rounded-3xl border border-blue-100 bg-white shadow-sm">
           {[
-            { label: 'Account Settings', icon: Settings, to: null },
-            { label: 'Payment Methods', icon: FileText, to: null },
+            { label: t('buyer.profile.accountSettings'), icon: Settings, to: null },
+            { label: t('buyer.profile.paymentMethods'), icon: FileText, to: null },
           ].map(({ label, icon, to }) => (
             <button
               key={label}
               onClick={to ? () => navigate(to) : undefined}
-              className="w-full flex items-center justify-between px-6 py-4 border-b border-gray-50 last:border-b-0 hover:bg-gray-50 transition-colors group"
+              className="group flex w-full items-center justify-between border-b border-gray-50 px-6 py-4 transition-colors last:border-b-0 hover:bg-blue-50/50"
             >
-              <div className="flex items-center gap-3 text-farm-dark font-medium text-sm">
-                {createElement(icon, { size: 17, className: 'text-gray-400' })} {label}
+              <div className="flex items-center gap-3 text-sm font-medium text-farm-dark">
+                {createElement(icon, { size: 17, className: 'text-blue-500' })} {label}
               </div>
-              <ChevronRight size={16} className="text-gray-300 group-hover:text-blue-600 transition-colors" />
+              <ChevronRight size={16} className="text-gray-300 transition-colors group-hover:text-blue-600" />
             </button>
           ))}
         </div>
@@ -207,9 +223,9 @@ export const BuyerProfile = () => {
         {/* Logout */}
         <button
           onClick={handleLogout}
-          className="w-full py-3.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-2xl border border-red-100 transition-colors flex justify-center items-center gap-2 text-sm"
+          className="flex w-full items-center justify-center gap-2 rounded-2xl border border-red-100 bg-red-50 py-3.5 text-sm font-bold text-red-600 transition-colors hover:bg-red-100"
         >
-          <LogOut size={17} /> Sign Out
+          <LogOut size={17} /> {t('common.signOut')}
         </button>
       </div>
     </div>

@@ -1,5 +1,43 @@
 import api from '../axiosConfig';
 
+const normalizeImages = (images) => {
+  if (!Array.isArray(images)) return images;
+  return images
+    .filter(Boolean)
+    .map((image) => (typeof image === 'string' ? { url: image } : image));
+};
+
+const normalizeOrder = (order) => {
+  if (!order || typeof order !== 'object') return order;
+
+  if (order.cropListing) {
+    order.cropListing.images = normalizeImages(order.cropListing.images);
+  }
+
+  const primaryImage = order.orderDetails?.cropImage || order.cropListing?.images?.[0]?.url || order.cropListing?.images?.[0] || '';
+  const cropName = order.orderDetails?.cropName || order.cropListing?.cropName || order.cropListing?.name || order.cropName || '';
+  const quantity = Number(order.orderDetails?.quantity ?? order.quantity ?? 0);
+  const pricePerKg = Number(order.orderDetails?.pricePerKg ?? order.cropListing?.pricePerKg ?? order.pricePerKg ?? 0);
+  const totalAmount = Number(order.orderDetails?.cropAmount ?? order.delivery?.totalAmount ?? order.totalAmount ?? 0);
+  const deliveryMethod = order.delivery?.method || order.deliveryMethod || '';
+
+  return {
+    ...order,
+    id: order._id || order.id,
+    cropName,
+    quantity: Number.isFinite(quantity) ? quantity : 0,
+    pricePerKg: Number.isFinite(pricePerKg) ? pricePerKg : 0,
+    totalAmount: Number.isFinite(totalAmount) ? totalAmount : 0,
+    deliveryMethod,
+    buyerName: order.buyer?.name || order.buyerName || '',
+    buyerPhone: order.buyer?.phone || order.buyerPhone || '',
+    farmerName: order.farmer?.name || order.farmerName || '',
+    image: primaryImage,
+    farmerId: order.farmer?._id || order.farmerId || '',
+    buyerId: order.buyer?._id || order.buyerId || '',
+  };
+};
+
 export const ordersApi = {
   createOrder: async (payload) => {
     const body = {
@@ -26,24 +64,30 @@ export const ordersApi = {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const url = user.role === 'farmer' ? '/orders/incoming' : '/orders/my';
     const res = await api.get(url, { params: params || {} });
-    const list = Array.isArray(res.data.data) ? res.data.data : (res.data.data?.orders || []);
+    const list = (Array.isArray(res.data.data) ? res.data.data : (res.data.data?.orders || [])).map(normalizeOrder);
+    return { data: { data: list } };
+  },
+
+  getFarmerOrders: async (params) => {
+    const res = await api.get('/orders/incoming', { params: params || {} });
+    const list = (Array.isArray(res.data.data) ? res.data.data : (res.data.data?.orders || [])).map(normalizeOrder);
     return { data: { data: list } };
   },
 
   // FIX: dedicated buyer orders fetch (always hits /orders/my regardless of role in localStorage)
   getBuyerOrders: async (params) => {
     const res = await api.get('/orders/my', { params: params || {} });
-    const list = Array.isArray(res.data.data) ? res.data.data : (res.data.data?.orders || []);
+    const list = (Array.isArray(res.data.data) ? res.data.data : (res.data.data?.orders || [])).map(normalizeOrder);
     return { data: { data: list } };
   },
 
   getOrderById: async (id) => {
     const res = await api.get(`/orders/${id}`);
-    return { data: { data: res.data.data } };
+    return { data: { data: normalizeOrder(res.data.data) } };
   },
 
   acceptOrder: async (id) => {
-    await api.patch(`/orders/${id}/accept`);
+    await api.post(`/orders/${id}/accept`);
     return { data: { success: true } };
   },
 

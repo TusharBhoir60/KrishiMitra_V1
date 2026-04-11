@@ -1,12 +1,43 @@
-import { NavLink, Outlet } from 'react-router-dom';
-import { ShoppingCart, Truck } from 'lucide-react';
+import { NavLink, Outlet, Link, useNavigate } from 'react-router-dom';
+import { ShoppingCart, Truck, User, LogOut } from 'lucide-react';
+import { useDispatch } from 'react-redux';
 import { useBuyerCart } from '../../context/BuyerCartContext';
+import { useAuth } from '../../hooks/useAuth';
+import { logout } from '../../store/slices/authSlice';
 import { LanguageSwitcher } from '../ui/LanguageSwitcher';
 import { useLanguage } from '../../context/LanguageContext';
 
 export const BuyerLayout = () => {
   const { cartCount, orders } = useBuyerCart();
   const { t } = useLanguage();
+  const { user } = useAuth();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const displayName = user?.name || user?.fullName || user?.businessName || t('buyer.profile.title');
+  const initials = (displayName || 'B')
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0))
+    .join('')
+    .toUpperCase() || 'B';
+
+  const profileRows = [
+    { label: t('buyer.profile.fullName'), value: user?.name || user?.fullName },
+    { label: t('auth.email'), value: user?.email },
+    { label: t('buyer.profile.phone'), value: user?.phone },
+    { label: t('buyer.profile.businessName'), value: user?.businessName },
+    { label: t('buyer.profile.businessType'), value: user?.businessType },
+    { label: t('buyer.profile.district'), value: user?.location?.district },
+    { label: t('buyer.profile.state'), value: user?.location?.state },
+    { label: t('buyer.profile.deliveryAddress'), value: user?.deliveryAddress },
+  ].filter((item) => item.value);
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/');
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#f7fbf4] via-white to-[#f4efe4] text-farm-dark">
@@ -57,6 +88,22 @@ export const BuyerLayout = () => {
                   {orders.length}
                 </span>
               )}
+            </NavLink>
+
+            <NavLink
+              to="/buyer/profile"
+              className={({ isActive }) =>
+                `flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-semibold transition-colors ${
+                  isActive
+                    ? 'border-blue-600 bg-blue-600 text-white'
+                    : 'border-blue-100 bg-[#f4f8ff] text-farm-dark hover:bg-blue-50'
+                }`
+              }
+            >
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-blue-500 text-xs font-bold text-white shadow-sm">
+                {initials}
+              </div>
+              <span className="hidden sm:inline">{t('common.profile')}</span>
             </NavLink>
           </div>
         </div>

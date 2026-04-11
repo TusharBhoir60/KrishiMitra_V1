@@ -6,6 +6,7 @@ import { ApiError } from '../utils/ApiError.js'
 import { ApiResponse } from '../utils/ApiResponse.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { detectLanguage, translateText } from '../services/translationService.js'
+import { analyzeUploadedCropImage } from '../utils/qualityAnalysis.js'
 
 const escapeRegex = (value = '') => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
@@ -110,6 +111,14 @@ const createListing = asyncHandler(async (req, res) => {
 
   const parseBool = (val) => val === 'true' || val === true
 
+  const primaryImageAnalysis = req.files?.[0]
+    ? analyzeUploadedCropImage(req.files[0], cropName)
+    : null
+
+  if (primaryImageAnalysis && !primaryImageAnalysis.ok) {
+    throw new ApiError(400, primaryImageAnalysis.error)
+  }
+
   const images = req.files?.length
     ? await uploadMultipleToCloudinary(req.files.map((f) => f.buffer))
     : []
@@ -133,7 +142,7 @@ const createListing = asyncHandler(async (req, res) => {
     description_original: originalDescription,
     language: detectedLanguage,
     quality: {
-      grade:        grade        || 'A',
+      grade:        primaryImageAnalysis?.data?.grade || grade || 'A',
       perishability: perishability || 'medium',
     },
     delivery: {
@@ -317,12 +326,22 @@ const updateListing = asyncHandler(async (req, res) => {
   }
 
   if (req.files?.length) {
+    const primaryImageAnalysis = analyzeUploadedCropImage(
+      req.files[0],
+      req.body.cropName ?? listing.title_original ?? listing.cropName
+    )
+
+    if (!primaryImageAnalysis.ok) {
+      throw new ApiError(400, primaryImageAnalysis.error)
+    }
+
     const images = await uploadMultipleToCloudinary(
       req.files.map((f) => f.buffer)
     )
     if (images.length) {
       listing.images = images
       listing.imageUploadedAt = new Date()
+      listing.quality.grade = primaryImageAnalysis.data.grade
     }
   }
 
@@ -339,7 +358,6 @@ const updateListing = asyncHandler(async (req, res) => {
     district,
     taluka,
     village,
-    grade,
     perishability,
     farmerDelivers,
     buyerPickup,
@@ -369,7 +387,6 @@ const updateListing = asyncHandler(async (req, res) => {
   if (description !== undefined) listing.description_original = description
 
   // Quality subdocument
-  if (grade         !== undefined) listing.quality.grade         = grade
   if (perishability !== undefined) listing.quality.perishability = perishability
 
   // Delivery subdocument

@@ -241,7 +241,7 @@ export const FarmerDashboard = () => {
                   to="/farmer/listings"
                   className="flex items-center gap-2.5 p-3 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-100 rounded-xl font-medium text-sm transition-colors"
                 >
-                  <Package size={17} className="text-gray-500" /> Manage Listings
+                  <Package size={17} className="text-gray-500" /> {t('farmer.dashboard.manageListings')}
                 </Link>
               </div>
             </div>
@@ -249,14 +249,14 @@ export const FarmerDashboard = () => {
             {/* My listings preview */}
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
-                <h2 className="font-bold text-farm-dark text-sm">My Listings</h2>
-                <Link to="/farmer/listings" className="text-xs text-farm-green hover:underline">See all</Link>
+                <h2 className="font-bold text-farm-dark text-sm">{t('farmer.dashboard.myListings')}</h2>
+                <Link to="/farmer/listings" className="text-xs text-farm-green hover:underline">{t('farmer.dashboard.seeAllListings')}</Link>
               </div>
               <div className="divide-y divide-gray-50">
                 {data.listings.length === 0 ? (
                   <div className="py-8 text-center text-gray-400 text-xs">
-                    No listings yet.{' '}
-                    <Link to="/farmer/listings/new" className="text-farm-green font-medium underline">Add one</Link>
+                    {t('farmer.dashboard.noListingsYet')}{' '}
+                    <Link to="/farmer/listings/new" className="text-farm-green font-medium underline">{t('farmer.dashboard.addOne')}</Link>
                   </div>
                 ) : (
                   data.listings.slice(0, 4).map(listing => (

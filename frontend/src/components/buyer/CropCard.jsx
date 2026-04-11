@@ -1,5 +1,6 @@
 import { motion as Motion } from 'framer-motion';
 import { useLanguage } from '../../context/LanguageContext';
+import FarmerRatingBadge from '../common/FarmerRatingBadge';
 
 export const CropCard = ({ crop, index }) => {
   const { currentLanguage } = useLanguage();
@@ -89,6 +90,10 @@ export const CropCard = ({ crop, index }) => {
             {crop.farmerName.charAt(0)}
           </div>
           <span className="font-body text-sm text-gray-700">{crop.farmerName} • {crop.location}</span>
+        </div>
+
+        <div className="mb-4">
+          <FarmerRatingBadge compact />
         </div>
         
         <div className="font-body text-sm text-gray-500 mb-4 flex justify-between">

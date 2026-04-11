@@ -11,7 +11,7 @@ import { authApi } from '../../api/endpoints/authApi';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useLanguage } from '../../context/LanguageContext';
-import { ReviewList } from '../../components/sections/ReviewList'; // ← ADDED
+import { FarmerProfileReviews } from '../../components/sections/FarmerProfileReviews';
 
 export const FarmerProfile = () => {
   const { t } = useLanguage();
@@ -188,16 +188,11 @@ export const FarmerProfile = () => {
           </div>
         </div>
 
-        {/* ↓ ADDED: Reviews section — shows all reviews buyers have left for this farmer */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
-            <Star size={16} className="text-amber-400 fill-amber-400" />
-            <h2 className="font-bold text-farm-dark text-sm">Reviews from Buyers</h2>
-          </div>
-          <div className="px-6 py-4">
-            <ReviewList farmerId={user?._id} />
-          </div>
-        </div>
+        <FarmerProfileReviews
+          farmerId={user?._id}
+          farmerName={displayName}
+          farmerLocation={user?.location?.district ? `${user.location.district}, ${user.location.state || 'Maharashtra'}` : ''}
+        />
 
         {/* Settings links */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">

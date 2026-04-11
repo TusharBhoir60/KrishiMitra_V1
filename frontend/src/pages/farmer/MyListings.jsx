@@ -6,9 +6,11 @@ import { formatINR } from '../../utils/formatCurrency';
 import { SkeletonCard } from '../../components/common/SkeletonCard';
 import { Plus, Edit2, Trash2, Package, TrendingUp, Layers } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useLanguage } from '../../context/LanguageContext';
 
 export const MyListings = () => {
   const navigate = useNavigate();
+  const { t, currentLanguage } = useLanguage();
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
@@ -21,25 +23,26 @@ export const MyListings = () => {
       const res = await cropsApi.getMyListings();
       setListings(res.data?.data || []);
     } catch {
-      toast.error('Failed to load listings');
+      toast.error(t('farmer.listings.loadingFailed'));
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Delete this listing? This cannot be undone.')) return;
+    if (!window.confirm(t('farmer.listings.deleteConfirm'))) return;
     try {
       await cropsApi.deleteListing(id);
-      toast.success('Listing deleted');
+      toast.success(t('farmer.listings.deleted'));
       fetchListings();
     } catch {
-      toast.error('Failed to delete listing');
+      toast.error(t('farmer.listings.deleteFailed'));
     }
   };
 
   const filters = ['all', 'active', 'inactive', 'sold_out'];
   const filtered = filter === 'all' ? listings : listings.filter(l => l.status === filter);
+  const dateLocale = currentLanguage === 'hi' ? 'hi-IN' : currentLanguage === 'mr' ? 'mr-IN' : 'en-IN';
 
   if (loading) return (
     <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -54,14 +57,14 @@ export const MyListings = () => {
       <div className="bg-white border-b border-gray-100 px-6 py-5 md:px-8">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-display font-bold text-farm-dark">My Listings</h1>
-            <p className="text-gray-500 text-sm mt-0.5">{listings.length} total · {listings.filter(l => l.status === 'active').length} active</p>
+            <h1 className="text-2xl font-display font-bold text-farm-dark">{t('farmer.listings.title')}</h1>
+            <p className="text-gray-500 text-sm mt-0.5">{t('farmer.listings.summary', { total: listings.length, active: listings.filter(l => l.status === 'active').length })}</p>
           </div>
           <Link
             to="/farmer/listings/new"
             className="flex items-center gap-2 px-5 py-2.5 bg-farm-green hover:bg-farm-dark text-white font-medium rounded-xl transition-colors shadow-md shadow-farm-green/25 text-sm w-full sm:w-auto justify-center"
           >
-            <Plus size={17} /> Add New Crop
+            <Plus size={17} /> {t('farmer.listings.addNewCrop')}
           </Link>
         </div>
       </div>
@@ -71,9 +74,9 @@ export const MyListings = () => {
         {/* Stats bar */}
         <div className="grid grid-cols-3 gap-4 mb-6">
           {[
-            { icon: Layers,     label: 'Total',    value: listings.length,                             color: 'text-gray-700  bg-gray-50  border-gray-100'   },
-            { icon: TrendingUp, label: 'Active',   value: listings.filter(l => l.status==='active').length,    color: 'text-farm-green bg-green-50 border-green-100'  },
-            { icon: Package,    label: 'Sold Out', value: listings.filter(l => l.status==='sold_out').length,  color: 'text-red-600 bg-red-50 border-red-100'        },
+            { icon: Layers,     label: t('farmer.listings.total'),    value: listings.length,                             color: 'text-gray-700  bg-gray-50  border-gray-100'   },
+            { icon: TrendingUp, label: t('farmer.listings.active'),   value: listings.filter(l => l.status==='active').length,    color: 'text-farm-green bg-green-50 border-green-100'  },
+            { icon: Package,    label: t('farmer.listings.soldOut'), value: listings.filter(l => l.status==='sold_out').length,  color: 'text-red-600 bg-red-50 border-red-100'        },
           ].map(s => (
             <div key={s.label} className={`flex items-center gap-3 p-4 rounded-xl border ${s.color}`}>
               <s.icon size={18} />
@@ -97,7 +100,7 @@ export const MyListings = () => {
                   : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
               }`}
             >
-              {f === 'all' ? 'All' : f.replace('_', ' ')}
+              {f === 'all' ? t('farmer.listings.all') : f.replace('_', ' ')}
             </button>
           ))}
         </div>
@@ -106,17 +109,19 @@ export const MyListings = () => {
           <div className="bg-white rounded-2xl border-2 border-dashed border-gray-200 py-16 text-center">
             <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl">🌾</div>
             <h3 className="font-bold text-xl text-farm-dark mb-2">
-              {filter === 'all' ? 'No listings yet' : `No ${filter.replace('_', ' ')} listings`}
+              {filter === 'all'
+                ? t('farmer.listings.noListingsYet')
+                : t('farmer.listings.noListingsForFilter', { filter: filter.replace('_', ' ') })}
             </h3>
             <p className="text-gray-500 text-sm max-w-xs mx-auto mb-6">
-              {filter === 'all' ? "Buyers are waiting! Add your first crop listing." : 'Try a different filter.'}
+              {filter === 'all' ? t('farmer.listings.buyersWaiting') : t('farmer.listings.tryDifferentFilter')}
             </p>
             {filter === 'all' && (
               <Link
                 to="/farmer/listings/new"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-farm-green text-white font-medium rounded-xl hover:bg-farm-dark transition-colors"
               >
-                <Plus size={17} /> Create First Listing
+                <Plus size={17} /> {t('farmer.listings.createFirstListing')}
               </Link>
             )}
           </div>
@@ -163,21 +168,21 @@ export const MyListings = () => {
 
                   <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 mb-4">
                     <div className="bg-gray-50 rounded-lg p-2">
-                      <p className="text-gray-400 mb-0.5">Total Qty</p>
+                      <p className="text-gray-400 mb-0.5">{t('farmer.listings.totalQty')}</p>
                       <p className="font-semibold text-farm-dark">{listing.quantity} kg</p>
                     </div>
                     <div className="bg-gray-50 rounded-lg p-2">
-                      <p className="text-gray-400 mb-0.5">Available</p>
+                      <p className="text-gray-400 mb-0.5">{t('farmer.listings.available')}</p>
                       <p className="font-semibold text-farm-dark">{listing.availableQty} kg</p>
                     </div>
                     <div className="bg-gray-50 rounded-lg p-2">
-                      <p className="text-gray-400 mb-0.5">Min Order</p>
+                      <p className="text-gray-400 mb-0.5">{t('farmer.listings.minOrder')}</p>
                       <p className="font-semibold text-farm-dark">{listing.minOrderQty} kg</p>
                     </div>
                     <div className="bg-gray-50 rounded-lg p-2">
-                      <p className="text-gray-400 mb-0.5">Harvest</p>
+                      <p className="text-gray-400 mb-0.5">{t('farmer.listings.harvest')}</p>
                       <p className="font-semibold text-farm-dark">
-                        {listing.harvestDate ? new Date(listing.harvestDate).toLocaleDateString('en-IN', { day:'numeric', month:'short' }) : '–'}
+                        {listing.harvestDate ? new Date(listing.harvestDate).toLocaleDateString(dateLocale, { day:'numeric', month:'short' }) : '–'}
                       </p>
                     </div>
                   </div>
@@ -188,12 +193,12 @@ export const MyListings = () => {
                       onClick={() => navigate(`/farmer/listings/${listing._id}/edit`)}
                       className="flex-1 py-2.5 flex items-center justify-center gap-2 bg-farm-pale hover:bg-green-100 text-farm-green font-semibold rounded-xl text-sm transition-colors"
                     >
-                      <Edit2 size={15} /> Edit
+                      <Edit2 size={15} /> {t('farmer.listings.edit')}
                     </button>
                     <button
                       onClick={() => handleDelete(listing._id)}
                       className="px-3.5 py-2.5 flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-600 rounded-xl transition-colors"
-                      title="Delete listing"
+                      title={t('farmer.listings.deleteListing')}
                     >
                       <Trash2 size={15} />
                     </button>
