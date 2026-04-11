@@ -1,0 +1,7 @@
+{
+  "mae": 0.044,
+  "rmse": 0.0552,
+  "r2": 0.7875,
+  "classification_accuracy_pct": 97.75,
+  "model_version": "1.0.0-xgb"
+}
