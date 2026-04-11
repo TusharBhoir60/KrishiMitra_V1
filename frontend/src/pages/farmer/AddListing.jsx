@@ -67,6 +67,7 @@ export const AddListing = () => {
   const district = watch('district');
   const price = watch('pricePerKg');
   const farmerDelivers = watch('farmerDelivers');
+  const canPublish = Boolean(primaryImage && qualityAnalysis?.grade && !submitting);
 
   useEffect(() => {
     if (qualityAnalysis?.grade) {
@@ -453,8 +454,8 @@ export const AddListing = () => {
             <button type="button" onClick={() => navigate('/farmer/listings')} disabled={submitting} className="flex-1 py-4 border-2 border-gray-200 text-gray-600 font-bold rounded-xl hover:bg-gray-50 transition-colors">
               Save as draft
             </button>
-            <button type="submit" disabled={submitting} className="flex-1 py-4 bg-farm-green hover:bg-farm-dark text-white font-bold rounded-xl transition-colors shadow-lg shadow-farm-green/30 flex items-center justify-center gap-2">
-              {submitting ? <><Loader2 className="w-5 h-5 animate-spin" /> Publishing...</> : 'Publish Listing'}
+            <button type="submit" disabled={!canPublish} className="flex-1 py-4 bg-farm-green hover:bg-farm-dark disabled:bg-gray-300 disabled:shadow-none disabled:cursor-not-allowed text-white font-bold rounded-xl transition-colors shadow-lg shadow-farm-green/30 flex items-center justify-center gap-2">
+              {submitting ? <><Loader2 className="w-5 h-5 animate-spin" /> Publishing...</> : canPublish ? 'Publish Listing' : 'Analyze quality first'}
             </button>
           </div>
 

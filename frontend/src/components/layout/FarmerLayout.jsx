@@ -1,5 +1,5 @@
 import { Outlet, NavLink, Link } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingCart, User, Plus, Leaf, LogOut, TrendingUp, Lightbulb, CheckCircle2, Sprout, ChartNoAxesColumn } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, User, Plus, Leaf, LogOut, TrendingUp, Lightbulb, Sprout, ChartNoAxesColumn } from 'lucide-react';
 import { AppNavbar } from './AppNavbar';
 import { BottomNav } from './BottomNav';
 import { useAuth } from '../../hooks/useAuth';
@@ -20,7 +20,6 @@ export const FarmerLayout = () => {
     { name: t('farmer.nav.orders'),    to: '/farmer/orders',    icon: ShoppingCart },
     { name: t('farmer.nav.aiPricePrediction'), to: '/farmer/ai/price-prediction', icon: TrendingUp },
     { name: t('farmer.nav.aiDemandForecast'), to: '/farmer/ai/demand-forecast', icon: Lightbulb },
-    { name: t('farmer.nav.aiQualityAnalysis'), to: '/farmer/ai/quality-analysis', icon: CheckCircle2 },
     { name: t('farmer.nav.aiCropRecommendation'), to: '/farmer/ai/crop-recommendation', icon: Sprout },
     { name: t('farmer.nav.aiPriceRangePrediction'), to: '/farmer/ai/price-range-prediction', icon: ChartNoAxesColumn },
     { name: t('farmer.nav.profile'),   to: '/farmer/profile',   icon: User },
